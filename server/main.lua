@@ -443,12 +443,13 @@ end)
 RegisterServerEvent("inventory:server:UseItem")
 AddEventHandler('inventory:server:UseItem', function(inventory, item)
 	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	if inventory == "player" or inventory == "hotbar" then
-		local itemData = Player.Functions.GetItemBySlot(item.slot)
-		if itemData ~= nil then
-			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
-		end
+        GetItemBySlot(Player, item.slot, function(itemData)
+            if itemData ~= nil then
+    			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
+    		end
+        end)
 	end
 end)
 
