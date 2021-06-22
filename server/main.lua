@@ -1218,21 +1218,6 @@ function GetStashItems(stashId)
 	return items
 end
 
-QBCore.Functions.CreateCallback('qb-inventory:server:GetStashItems', function(source, cb, stashId)
-	cb(GetStashItems(stashId))
-end)
-
-RegisterServerEvent('qb-inventory:server:SaveStashItems')
-AddEventHandler('qb-inventory:server:SaveStashItems', function(stashId, items)
-	QBCore.Functions.ExecuteSql(false, "SELECT * FROM `stashitemsnew` WHERE `stash` = '"..stashId.."'", function(result)
-		if result[1] ~= nil then
-			QBCore.Functions.ExecuteSql(false, "UPDATE `stashitemsnew` SET `items` = '"..json.encode(items).."' WHERE `stash` = '"..stashId.."'")
-		else
-			QBCore.Functions.ExecuteSql(false, "INSERT INTO `stashitemsnew` (`stash`, `items`) VALUES ('"..stashId.."', '"..json.encode(items).."')")
-		end
-	end)
-end)
-
 function SaveStashItems(stashId, items)
 	if Stashes[stashId].label ~= "Stash-None" then
 		if items ~= nil then
