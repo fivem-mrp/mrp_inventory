@@ -86,7 +86,7 @@ local function AddItem(ply, name, quantity, slot, info)
             })
         end
         
-        MRP.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+        MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
             print('Inventory item added for ' .. ply.name .. ' ' .. ply.surname)
         end)
     end)
@@ -115,7 +115,7 @@ local function RemoveItem(ply, name, quantity, fromSlot)
             end
         end
         
-        MRP.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+        MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
             print('Inventory item removed for ' .. ply.name .. ' ' .. ply.surname)
         end)
     end)
@@ -1230,7 +1230,7 @@ function SaveStashItems(stashId, items)
                 items = items
             }
             
-            MRP.update('inventory', inventory, {owner = stashId}, {upsert=true}, function(res)
+            MRP_SERVER.update('inventory', inventory, {owner = stashId}, {upsert=true}, function(res)
                 Stashes[stashId].isOpen = false
             end)
 		end
@@ -1371,7 +1371,7 @@ function SaveOwnedVehicleItems(plate, items)
                 items = items
             }
             
-            MRP.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
+            MRP_SERVER.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
                 Trunks[plate].isOpen = false
             end)
 		end
@@ -1512,7 +1512,7 @@ function SaveOwnedGloveboxItems(plate, items)
                 items = items
             }
             
-            MRP.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
+            MRP_SERVER.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
                 Trunks[plate].isOpen = false
             end)
 
