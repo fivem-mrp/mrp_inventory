@@ -8,19 +8,24 @@ Gloveboxes = {}
 Stashes = {}
 ShopItems = {}
 
-local function SplitStr(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
+local function GetItemBySlot(ply, slot, cb)
+    MRP_SERVER.read('inventory', {
+        owner = ply._id
+    }, function(inventory)
+        local item = nil
+        if inventory ~= nil and inventory.items ~= nil then
+            for k, v in pairs(inventory.items) do
+                if v.slot == slot then
+                    item = v
+                    break
+                end
+            end
+        end
+        cb(item)
     end
-    local t={}
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        table.insert(t, str)
-    end
-    return t
 end
 
-local function AddItem(ply, itemId, quantity, slot)
-    slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
+local function AddItem(ply, item, quantity, slot)
     MRP_SERVER.read('inventory', {
         owner = ply._id
     }, function(inventory)
@@ -34,9 +39,11 @@ local function AddItem(ply, itemId, quantity, slot)
         local added = false
         if inventory.items ~= nil then
             for k, v in pairs(inventory.items) do
-                if v.itemId == itemId then
-                    v.quantity = v.quantity + quantity
-                    v.slot = slot
+                if v.name == item.name then
+                    v.amount = v.amount + quantity
+                    if slot then
+                        v.slot = slot
+                    end
                     added = true
                     break
                 end
@@ -46,9 +53,13 @@ local function AddItem(ply, itemId, quantity, slot)
         end
         
         if not added then
+            slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
             table.insert(inventory.items, {
-                itemId = itemId,
-                quantity = quantity
+                name = item.name,
+                amount = quantity,
+                info = item.info,
+                type = item.type,
+                useable = item.useable,
                 slot = slot
             })
         end
@@ -59,7 +70,7 @@ local function AddItem(ply, itemId, quantity, slot)
     end)
 end
 
-local function RemoveItem(ply, itemId, quantity)
+local function RemoveItem(ply, item, quantity)
     MRP_SERVER.read('inventory', {
         owner = ply._id
     }, function(inventory)
@@ -71,8 +82,8 @@ local function RemoveItem(ply, itemId, quantity)
         else
             if inventory.items ~= nil then
                 for k, v in pairs(inventory.items) do
-                    if v.itemId == itemId then
-                        v.quantity = v.quantity - quantity
+                    if v.name == item.name then
+                        v.amount = v.amount - quantity
                         if v.quantity <= 0 then
                             table.remove(inventory.items, k)
                         end
@@ -239,7 +250,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 					secondInv.slots = other.slots ~= nil and other.slots or 50
 					--if (Trunks[id] ~= nil and Trunks[id].isOpen) or (SplitStr(id, "PLZI")[2] ~= nil and Player.PlayerData.job.name ~= "police") then
                     --TODO JOB
-                    if (Trunks[id] ~= nil and Trunks[id].isOpen) or (SplitStr(id, "PLZI")[2] ~= nil) then
+                    if (Trunks[id] ~= nil and Trunks[id].isOpen) or (MRPShared.SplitStr(id, "PLZI")[2] ~= nil) then
 						secondInv.name = "none-inv"
 						secondInv.label = "Trunk-None"
 						secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
@@ -406,27 +417,27 @@ end)
 RegisterServerEvent("inventory:server:UseItemSlot")
 AddEventHandler('inventory:server:UseItemSlot', function(slot)
 	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
-	local itemData = Player.Functions.GetItemBySlot(slot)
-
-	if itemData ~= nil then
-		local itemInfo = QBCore.Shared.Items[itemData.name]
-		if itemData.type == "weapon" then
-			if itemData.info.quality ~= nil then
-				if itemData.info.quality > 0 then
-					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
-				else
-					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, false)
-				end
-			else
-				TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
-			end
-			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
-		elseif itemData.useable then
-			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
-			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
-		end
-	end
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
+	GetItemBySlot(Player, slot, function(itemData)
+        if itemData ~= nil then
+    		local itemInfo = MRPShared.Items[itemData.name]
+    		if itemData.type == "weapon" then
+    			if itemData.info.quality ~= nil then
+    				if itemData.info.quality > 0 then
+    					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
+    				else
+    					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, false)
+    				end
+    			else
+    				TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
+    			end
+    			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+    		elseif itemData.useable then
+    			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
+    			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+    		end
+    	end
+    end)
 end)
 
 RegisterServerEvent("inventory:server:UseItem")

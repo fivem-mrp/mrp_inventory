@@ -8,6 +8,7 @@ dependencies {
 }
 
 server_scripts {
+    '@mrp_core/shared/MRPShared.lua',
 	"config.lua",
 	"server/main.lua",
 }
