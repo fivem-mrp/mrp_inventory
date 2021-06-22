@@ -634,49 +634,54 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
         end)
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "otherplayer" then
 		local playerId = tonumber(MRPShared.SplitStr(fromInventory, "-")[2])
-		local OtherPlayer = QBCore.Functions.GetPlayer(playerId)
-		local fromItemData = OtherPlayer.PlayerData.items[fromSlot]
-		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
-		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
-			if toInventory == "player" or toInventory == "hotbar" then
-				local toItemData = Player.Functions.GetItemBySlot(toSlot)
-				OtherPlayer.Functions.RemoveItem(itemInfo["name"], fromAmount, fromSlot)
-				TriggerClientEvent("inventory:client:CheckWeapon", OtherPlayer.PlayerData.source, fromItemData.name)
-				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
-						OtherPlayer.Functions.AddItem(itemInfo["name"], toAmount, fromSlot, toItemData.info)
-						TriggerEvent("qb-log:server:CreateLog", "robbing", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** from player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | *"..OtherPlayer.PlayerData.source.."*)")
-					end
-				else
-					TriggerEvent("qb-log:server:CreateLog", "robbing", "Retrieved Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) took item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** from player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | *"..OtherPlayer.PlayerData.source.."*)")
-				end
-				Player.Functions.AddItem(fromItemData.name, fromAmount, toSlot, fromItemData.info)
-			else
-				local toItemData = OtherPlayer.PlayerData.items[toSlot]
-				OtherPlayer.Functions.RemoveItem(itemInfo["name"], fromAmount, fromSlot)
-				--Player.PlayerData.items[toSlot] = fromItemData
-				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
-					--Player.PlayerData.items[fromSlot] = toItemData
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
-						OtherPlayer.Functions.RemoveItem(itemInfo["name"], toAmount, toSlot)
-						OtherPlayer.Functions.AddItem(itemInfo["name"], toAmount, fromSlot, toItemData.info)
-					end
-				else
-					--Player.PlayerData.items[fromSlot] = nil
-				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
-				OtherPlayer.Functions.AddItem(itemInfo["name"], fromAmount, toSlot, fromItemData.info)
-			end
-		else
-			TriggerClientEvent("QBCore:Notify", src, "Item doesn\'t exist??", "error")
-		end
+		local OtherPlayer = MRP_SERVER.getSpawnedCharacter(playerId)
+        GetItemBySlot(OtherPlayer, fromSlot, function(fromItemData)
+    		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
+    		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
+    			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    			if toInventory == "player" or toInventory == "hotbar" then
+                    GetItemBySlot(Player, toSlot, function(toItemData)
+                        RemoveItem(OtherPlayer, itemInfo["name"], fromAmount, fromSlot)
+        				TriggerClientEvent("inventory:client:CheckWeapon", OtherPlayer.PlayerData.source, fromItemData.name)
+        				if toItemData ~= nil then
+        					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+        					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+        					if toItemData.name ~= fromItemData.name then
+        						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+        						AddItem(OtherPlayer, itemInfo["name"], toAmount, fromSlot, toItemData.info)
+        						--TriggerEvent("qb-log:server:CreateLog", "robbing", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** from player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | *"..OtherPlayer.PlayerData.source.."*)")
+        					end
+        				--[[else
+        					TriggerEvent("qb-log:server:CreateLog", "robbing", "Retrieved Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) took item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** from player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | *"..OtherPlayer.PlayerData.source.."*)")]]--
+        				end
+        				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                    end)
+    			else
+    				local toItemData = OtherPlayer.PlayerData.items[toSlot]
+    				RemoveItem(OtherPlayer, itemInfo["name"], fromAmount, fromSlot)
+    				--Player.PlayerData.items[toSlot] = fromItemData
+    				if toItemData ~= nil then
+    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					--Player.PlayerData.items[fromSlot] = toItemData
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    						RemoveItem(OtherPlayer, itemInfo["name"], toAmount, toSlot)
+    						AddItem(OtherPlayer, itemInfo["name"], toAmount, fromSlot, toItemData.info)
+    					end
+    				else
+    					--Player.PlayerData.items[fromSlot] = nil
+    				end
+    				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    				AddItem(OtherPlayer, itemInfo["name"], fromAmount, toSlot, fromItemData.info)
+    			end
+    		else
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"Item doesn\'t exist??"}
+                })
+    		end
+        end)
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "trunk" then
 		local plate = MRPShared.SplitStr(fromInventory, "-")[2]
 		local fromItemData = Trunks[plate].items[fromSlot]
@@ -684,22 +689,23 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
 			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 			if toInventory == "player" or toInventory == "hotbar" then
-				local toItemData = Player.Functions.GetItemBySlot(toSlot)
-				RemoveFromTrunk(plate, fromSlot, itemInfo["name"], fromAmount)
-				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
-						AddToTrunk(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
-						TriggerEvent("qb-log:server:CreateLog", "trunk", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** plate: *" .. plate .. "*")
-					else
-						TriggerEvent("qb-log:server:CreateLog", "trunk", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
-					end
-				else
-					TriggerEvent("qb-log:server:CreateLog", "trunk", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** plate: *" .. plate .. "*")
-				end
-				Player.Functions.AddItem(fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                GetItemBySlot(Player, toSlot, function(toItemData)
+    				RemoveFromTrunk(plate, fromSlot, itemInfo["name"], fromAmount)
+    				if toItemData ~= nil then
+    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+    						AddToTrunk(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
+    						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** plate: *" .. plate .. "*")
+    					--else
+    						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
+    					end
+    				--else
+    					--TriggerEvent("qb-log:server:CreateLog", "trunk", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** plate: *" .. plate .. "*")
+    				end
+    				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                end)
 			else
 				local toItemData = Trunks[plate].items[toSlot]
 				RemoveFromTrunk(plate, fromSlot, itemInfo["name"], fromAmount)
@@ -720,7 +726,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				AddToTrunk(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
-			TriggerClientEvent("QBCore:Notify", src, "Item doesn\'t exist??", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Item doesn\'t exist??"}
+            })
 		end
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "glovebox" then
 		local plate = MRPShared.SplitStr(fromInventory, "-")[2]
@@ -729,22 +738,23 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
 			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 			if toInventory == "player" or toInventory == "hotbar" then
-				local toItemData = Player.Functions.GetItemBySlot(toSlot)
-				RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], fromAmount)
-				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
-						AddToGlovebox(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
-						TriggerEvent("qb-log:server:CreateLog", "glovebox", "Swapped", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src..")* swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** plate: *" .. plate .. "*")
-					else
-						TriggerEvent("qb-log:server:CreateLog", "glovebox", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
-					end
-				else
-					TriggerEvent("qb-log:server:CreateLog", "glovebox", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** plate: *" .. plate .. "*")
-				end
-				Player.Functions.AddItem(fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                GetItemBySlot(Player, toSlot, function(toItemData)
+                    RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], fromAmount)
+    				if toItemData ~= nil then
+    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+    						AddToGlovebox(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
+    						--TriggerEvent("qb-log:server:CreateLog", "glovebox", "Swapped", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src..")* swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** plate: *" .. plate .. "*")
+    					--else
+    						--TriggerEvent("qb-log:server:CreateLog", "glovebox", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
+    					end
+    				--else
+    					--TriggerEvent("qb-log:server:CreateLog", "glovebox", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** plate: *" .. plate .. "*")
+    				end
+    				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                end)
 			else
 				local toItemData = Gloveboxes[plate].items[toSlot]
 				RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], fromAmount)
@@ -765,7 +775,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				AddToGlovebox(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
-			TriggerClientEvent("QBCore:Notify", src, "Item doesn\'t exist??", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Item doesn\'t exist??"}
+            })
 		end
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "stash" then
 		local stashId = MRPShared.SplitStr(fromInventory, "-")[2]
@@ -774,23 +787,24 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
 			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 			if toInventory == "player" or toInventory == "hotbar" then
-				local toItemData = Player.Functions.GetItemBySlot(toSlot)
-				RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
-				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
-						AddToStash(stashId, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
-						TriggerEvent("qb-log:server:CreateLog", "stash", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** stash: *" .. stashId .. "*")
-					else
-						TriggerEvent("qb-log:server:CreateLog", "stash", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from stash: *" .. stashId .. "*")
-					end
-				else
-					TriggerEvent("qb-log:server:CreateLog", "stash", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** stash: *" .. stashId .. "*")
-				end
-				SaveStashItems(stashId, Stashes[stashId].items)
-				Player.Functions.AddItem(fromItemData.name, fromAmount, toSlot, fromItemData.info)
+				GetItemBySlot(Player, toSlot function(toItemData)
+                    RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
+    				if toItemData ~= nil then
+    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+    						AddToStash(stashId, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
+    						TriggerEvent("qb-log:server:CreateLog", "stash", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** stash: *" .. stashId .. "*")
+    					--else
+    						--TriggerEvent("qb-log:server:CreateLog", "stash", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from stash: *" .. stashId .. "*")
+    					end
+    				--else
+    					--TriggerEvent("qb-log:server:CreateLog", "stash", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** stash: *" .. stashId .. "*")
+    				end
+    				SaveStashItems(stashId, Stashes[stashId].items)
+    				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                end)
 			else
 				local toItemData = Stashes[stashId].items[toSlot]
 				RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
@@ -811,9 +825,12 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				AddToStash(stashId, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
-			TriggerClientEvent("QBCore:Notify", src, "Item doesn\'t exist??", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Item doesn\'t exist??"}
+            })
 		end
-	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "traphouse" then
+	--[[elseif MRPShared.SplitStr(fromInventory, "-")[1] == "traphouse" then
 		local traphouseId = MRPShared.SplitStr(fromInventory, "-")[2]
 		local fromItemData = exports['qb-traphouse']:GetInventoryData(traphouseId, fromSlot)
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
@@ -853,7 +870,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 			end
 		else
 			TriggerClientEvent("QBCore:Notify", src, "Item doesn't exist??", "error")
-		end
+		end]]--
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "itemshop" then
 		local shopType = MRPShared.SplitStr(fromInventory, "-")[2]
 		local itemData = ShopItems[shopType].items[fromSlot]
