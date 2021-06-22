@@ -875,37 +875,55 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local shopType = MRPShared.SplitStr(fromInventory, "-")[2]
 		local itemData = ShopItems[shopType].items[fromSlot]
 		local itemInfo = MRPShared.Items[itemData.name:lower()]
-		local bankBalance = Player.PlayerData.money["bank"]
+		local bankBalance = Player.stats.cash
 		local price = tonumber((itemData.price*fromAmount))
 
 		if MRPShared.SplitStr(shopType, "_")[1] == "Dealer" then
 			if MRPShared.SplitStr(itemData.name, "_")[1] == "weapon" then
 				price = tonumber(itemData.price)
-				if Player.Functions.RemoveMoney("cash", price, "dealer-item-bought") then
+                if bankBalance >= price then
+                    TriggerEvent('mrp:bankin:server:pay:cash', src, price)
 					itemData.info.serie = tostring(Config.RandomInt(2) .. Config.RandomStr(3) .. Config.RandomInt(1) .. Config.RandomStr(2) .. Config.RandomInt(3) .. Config.RandomStr(4))
-					Player.Functions.AddItem(itemData.name, 1, toSlot, itemData.info)
-					TriggerClientEvent('qb-drugs:client:updateDealerItems', src, itemData, 1)
-					TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " bought!", "success")
-					TriggerEvent("qb-log:server:CreateLog", "dealers", "Dealer item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+					AddItem(Player, itemData.name, 1, toSlot, itemData.info)
+					--TriggerClientEvent('qb-drugs:client:updateDealerItems', src, itemData, 1)
+                    TriggerClientEvent('chat:addMessage', src, {
+                        template = '<div class="chat-message nonemergency">{0}</div>',
+                        args = {itemInfo["label"] .. " bought!"}
+                    })
+					--TriggerEvent("qb-log:server:CreateLog", "dealers", "Dealer item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
 				else
-					TriggerClientEvent('QBCore:Notify', src, "You don\'t have enough cash..", "error")
+                    TriggerClientEvent('chat:addMessage', src, {
+                        template = '<div class="chat-message nonemergency">{0}</div>',
+                        args = {"You don\'t have enough cash.. you poor"}
+                    })
 				end
 			else
-				if Player.Functions.RemoveMoney("cash", price, "dealer-item-bought") then
-					Player.Functions.AddItem(itemData.name, fromAmount, toSlot, itemData.info)
-					TriggerClientEvent('qb-drugs:client:updateDealerItems', src, itemData, fromAmount)
-					TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " ingekocht!", "success")
-					TriggerEvent("qb-log:server:CreateLog", "dealers", "Dealer item gekocht", "green", "**"..GetPlayerName(src) .. "** heeft een " .. itemInfo["label"] .. " gekocht voor $"..price)
+				if bankBalance >= price then
+                    TriggerEvent('mrp:bankin:server:pay:cash', src, price)
+					AddItem(Player, itemData.name, fromAmount, toSlot, itemData.info)
+					--TriggerClientEvent('qb-drugs:client:updateDealerItems', src, itemData, fromAmount)
+                    TriggerClientEvent('chat:addMessage', src, {
+                        template = '<div class="chat-message nonemergency">{0}</div>',
+                        args = {itemInfo["label"] .. " bought!"}
+                    })
+					--TriggerEvent("qb-log:server:CreateLog", "dealers", "Dealer item gekocht", "green", "**"..GetPlayerName(src) .. "** heeft een " .. itemInfo["label"] .. " gekocht voor $"..price)
 				else
-					TriggerClientEvent('QBCore:Notify', src, "You don't have enough cash..", "error")
+                    TriggerClientEvent('chat:addMessage', src, {
+                        template = '<div class="chat-message nonemergency">{0}</div>',
+                        args = {"You don\'t have enough cash.. you poor"}
+                    })
 				end
 			end
 		elseif MRPShared.SplitStr(shopType, "_")[1] == "Itemshop" then
-			if Player.Functions.RemoveMoney("cash", price, "itemshop-bought-item") then
-				Player.Functions.AddItem(itemData.name, fromAmount, toSlot, itemData.info)
-				TriggerClientEvent('qb-shops:client:UpdateShop', src, MRPShared.SplitStr(shopType, "_")[2], itemData, fromAmount)
-				TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " bought!", "success")
-				TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+			if bankBalance >= price then
+                TriggerEvent('mrp:bankin:server:pay:cash', src, price)
+				AddItem(Player, itemData.name, fromAmount, toSlot, itemData.info)
+				--TriggerClientEvent('qb-shops:client:UpdateShop', src, MRPShared.SplitStr(shopType, "_")[2], itemData, fromAmount)
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {itemInfo["label"] .. " bought!"}
+                })
+				--TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
 
 --Uncomment The stuff below if you want it so stuff likes shops will take from your bank account if you dont have enough cash on hand
 
@@ -916,13 +934,20 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 			--	TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " bought!", "success")
 			--	TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
 			else
-				TriggerClientEvent('QBCore:Notify', src, "You don't have enough cash..", "error")
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"You don\'t have enough cash.. you poor"}
+                })
 			end
 		else
-			if Player.Functions.RemoveMoney("cash", price, "unkown-itemshop-bought-item") then
-				Player.Functions.AddItem(itemData.name, fromAmount, toSlot, itemData.info)
-				TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " bought!", "success")
-				TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+			if bankBalance >= price then
+                TriggerEvent('mrp:bankin:server:pay:cash', src, price)
+				AddItem(Player, itemData.name, fromAmount, toSlot, itemData.info)
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {itemInfo["label"] .. " bought!"}
+                })
+				--TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
 
 --Uncomment The stuff below if you want it so stuff likes shops will take from your bank account if you dont have enough cash on hand
 
@@ -932,7 +957,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 			--	TriggerClientEvent('QBCore:Notify', src, itemInfo["label"] .. " bought!", "success")
 			--	TriggerEvent("qb-log:server:CreateLog", "shops", "Shop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
 			else
-				TriggerClientEvent('QBCore:Notify', src, "You don\'t have enough cash..", "error")
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"You don\'t have enough cash.. you poor"}
+                })
 			end
 		end
 	elseif fromInventory == "crafting" then
@@ -941,7 +969,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 			TriggerClientEvent("inventory:client:CraftItems", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
 		else
 			TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, true)
-			TriggerClientEvent('QBCore:Notify', src, "You don't have the right items..", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"You don't have the right items.."}
+            })
 		end
 	elseif fromInventory == "attachment_crafting" then
 		local itemData = Config.AttachmentCrafting["items"][fromSlot]
@@ -949,7 +980,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 			TriggerClientEvent("inventory:client:CraftAttachment", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
 		else
 			TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, true)
-			TriggerClientEvent('QBCore:Notify', src, "You don't have the right items..", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"You don't have the right items.."}
+            })
 		end
 	else
 		-- drop
@@ -959,24 +993,25 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
 			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 			if toInventory == "player" or toInventory == "hotbar" then
-				local toItemData = Player.Functions.GetItemBySlot(toSlot)
-				RemoveFromDrop(fromInventory, fromSlot, itemInfo["name"], fromAmount)
-				if toItemData ~= nil then
-					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
-					if toItemData.name ~= fromItemData.name then
-						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
-						AddToDrop(fromInventory, toSlot, itemInfo["name"], toAmount, toItemData.info)
-						if itemInfo["name"] == "radio" then
-							TriggerClientEvent('qb-radio:onRadioDrop', src)
-						end
-						TriggerEvent("qb-log:server:CreateLog", "drop", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** - dropid: *" .. fromInventory .. "*")
-					else
-						TriggerEvent("qb-log:server:CreateLog", "drop", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** - from dropid: *" .. fromInventory .. "*")
-					end
-				else
-					TriggerEvent("qb-log:server:CreateLog", "drop", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** -  dropid: *" .. fromInventory .. "*")
-				end
-				Player.Functions.AddItem(fromItemData.name, fromAmount, toSlot, fromItemData.info)
+				GetItemBySlot(Player, toSlot, function(toItemData)
+                    RemoveFromDrop(fromInventory, fromSlot, itemInfo["name"], fromAmount)
+    				if toItemData ~= nil then
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+    						AddToDrop(fromInventory, toSlot, itemInfo["name"], toAmount, toItemData.info)
+    						--[[if itemInfo["name"] == "radio" then
+    							TriggerClientEvent('qb-radio:onRadioDrop', src)
+    						end
+    						TriggerEvent("qb-log:server:CreateLog", "drop", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount .. "** - dropid: *" .. fromInventory .. "*")]]--
+    					--else
+    						--TriggerEvent("qb-log:server:CreateLog", "drop", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** - from dropid: *" .. fromInventory .. "*")
+    					end
+    				--else
+    					--TriggerEvent("qb-log:server:CreateLog", "drop", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** -  dropid: *" .. fromInventory .. "*")
+    				end
+    				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                end)
 			else
 				toInventory = tonumber(toInventory)
 				local toItemData = Drops[toInventory].items[toSlot]
@@ -990,21 +1025,24 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 						local itemInfo = MRPShared.Items[toItemData.name:lower()]
 						RemoveFromDrop(toInventory, toSlot, itemInfo["name"], toAmount)
 						AddToDrop(fromInventory, fromSlot, itemInfo["name"], toAmount, toItemData.info)
-						if itemInfo["name"] == "radio" then
+						--[[if itemInfo["name"] == "radio" then
 							TriggerClientEvent('qb-radio:onRadioDrop', src)
-						end
+						end]]--
 					end
-				else
+				--else
 					--Player.PlayerData.items[fromSlot] = nil
 				end
 				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 				AddToDrop(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
-				if itemInfo["name"] == "radio" then
+				--[[if itemInfo["name"] == "radio" then
 					TriggerClientEvent('qb-radio:onRadioDrop', src)
-				end
+				end]]--
 			end
 		else
-			TriggerClientEvent("QBCore:Notify", src, "Item doesn't exist??", "error")
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Item doesn't exist??"}
+            })
 		end
 	end
 end)
