@@ -281,7 +281,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 					else
 						if id ~= nil then 
 							local ownedItems = GetOwnedVehicleItems(id)
-							if IsVehicleOwned(id) and next(ownedItems) ~= nil then
+							if IsVehicleOwned(src, id) and next(ownedItems) ~= nil then
 								secondInv.inventory = ownedItems
 								Trunks[id] = {}
 								Trunks[id].items = ownedItems
@@ -327,7 +327,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 							secondInv.inventory = Gloveboxes[id].items
 							Gloveboxes[id].isOpen = src
 							Gloveboxes[id].label = secondInv.label
-						elseif IsVehicleOwned(id) and next(ownedItems) ~= nil then
+						elseif IsVehicleOwned(src, id) and next(ownedItems) ~= nil then
 							secondInv.inventory = ownedItems
 							Gloveboxes[id] = {}
 							Gloveboxes[id].items = ownedItems
@@ -412,13 +412,13 @@ end)
 RegisterServerEvent("inventory:server:SaveInventory")
 AddEventHandler('inventory:server:SaveInventory', function(type, id)
 	if type == "trunk" then
-		if (IsVehicleOwned(id)) then
+		if (IsVehicleOwned(source, id)) then
 			SaveOwnedVehicleItems(id, Trunks[id].items)
 		else
 			Trunks[id].isOpen = false
 		end
 	elseif type == "glovebox" then
-		if (IsVehicleOwned(id)) then
+		if (IsVehicleOwned(source, id)) then
 			SaveOwnedGloveboxItems(id, Gloveboxes[id].items)
 		else
 			Gloveboxes[id].isOpen = false
@@ -1086,16 +1086,30 @@ function hasCraftItems(source, CostItems, amount)
 	return true
 end
 
-function IsVehicleOwned(plate)
+function IsVehicleOwned(src, plate)
 	local val = false
     
-	QBCore.Functions.ExecuteSql(true, "SELECT * FROM `player_vehicles` WHERE `plate` = '"..plate.."'", function(result)
-		if (result[1] ~= nil) then
-			val = true
-		else
-			val = false
-		end
-	end)
+    local doneProcessing = false
+    
+    plate = MRPShared.Trim(plate)
+
+    local char = MRP_SERVER.getSpawnedCharacter(src)
+
+    local query = {
+        plate = plate
+    }
+
+    MRP_SERVER.read('vehicle', query, function(vehicle)
+        if vehicle != nil and MRP_SERVER.isObjectIDEqual(vehicle.owner, char._id) then
+            val = true
+        end
+        doneProcessing = true
+    end)
+    
+    while not doneProcessing do
+        Citizen.Wait(10)
+    end
+
 	return val
 end
 
@@ -1136,8 +1150,17 @@ end
 -- Stash Items
 function GetStashItems(stashId)
 	local items = {}
-	QBCore.Functions.ExecuteSql(true, "SELECT * FROM `stashitems` WHERE `stash` = '"..stashId.."'", function(result)
-		if result[1] ~= nil then
+    
+    local doneProcessing = false
+    
+    MRP_SERVER.read('inventory', {owner=stashId}, function(inventory)
+        local result = {}
+        
+        if inventory ~= nil then
+            result = inventory.items
+        end
+        
+        if result[1] ~= nil then
 			for k, item in pairs(result) do
 				local itemInfo = MRPShared.Items[item.name:lower()]
 				items[item.slot] = {
@@ -1154,8 +1177,10 @@ function GetStashItems(stashId)
 					slot = item.slot,
 				}
 			end
-			QBCore.Functions.ExecuteSql(false, "DELETE FROM `stashitems` WHERE `stash` = '"..stashId.."'")
-		else
+			--QBCore.Functions.ExecuteSql(false, "DELETE FROM `stashitems` WHERE `stash` = '"..stashId.."'")
+            --TODO not sure why deleting is needed when we are getting items
+        -- don't think I need stashitemsnew it's still an inventory in my design same as stashitems
+		--[[else
 			QBCore.Functions.ExecuteSql(true, "SELECT * FROM `stashitemsnew` WHERE `stash` = '"..stashId.."'", function(result)
 				if result[1] ~= nil then 
 					if result[1].items ~= nil then
@@ -1180,9 +1205,16 @@ function GetStashItems(stashId)
 						end
 					end
 				end
-			end)
+			end)]]--
 		end
-	end)
+        
+        doneProcessing = true
+    end)
+    
+    while not doneProcessing do
+        Citizen.Wait(10)
+    end
+    
 	return items
 end
 
