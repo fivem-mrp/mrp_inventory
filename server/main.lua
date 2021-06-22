@@ -1668,44 +1668,40 @@ function CreateDropId()
 end
 
 function CreateNewDrop(source, fromSlot, toSlot, itemAmount)
-	local Player = QBCore.Functions.GetPlayer(source)
-	local itemData = Player.Functions.GetItemBySlot(fromSlot)
+	local Player = MRP_SERVER.getSpawnedCharacter(source)
+	local itemData = GetItemBySlot(Player, fromSlot)
 	local coords = GetEntityCoords(GetPlayerPed(source))
-	if Player.Functions.RemoveItem(itemData.name, itemAmount, itemData.slot) then
-		TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
-		local itemInfo = MRPShared.Items[itemData.name:lower()]
-		local dropId = CreateDropId()
-		Drops[dropId] = {}
-		Drops[dropId].items = {}
+	RemoveItem(Player, itemData.name, itemAmount, itemData.slot)
+	TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
+	local itemInfo = MRPShared.Items[itemData.name:lower()]
+	local dropId = CreateDropId()
+	Drops[dropId] = {}
+	Drops[dropId].items = {}
 
-		Drops[dropId].items[toSlot] = {
-			name = itemInfo["name"],
-			amount = itemAmount,
-			info = itemData.info ~= nil and itemData.info or "",
-			label = itemInfo["label"],
-			description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-			weight = itemInfo["weight"], 
-			type = itemInfo["type"], 
-			unique = itemInfo["unique"], 
-			useable = itemInfo["useable"], 
-			image = itemInfo["image"],
-			slot = toSlot,
-			id = dropId,
-		}
-		TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..source.."*) dropped new item; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
-		TriggerClientEvent("inventory:client:DropItemAnim", source)
-		TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
-		if itemData.name:lower() == "radio" then
-			TriggerClientEvent('qb-radio:onRadioDrop', source)
-		end
-	else
-		TriggerClientEvent("QBCore:Notify", src, "You don't have this item!", "error")
-		return
-	end
+	Drops[dropId].items[toSlot] = {
+		name = itemInfo["name"],
+		amount = itemAmount,
+		info = itemData.info ~= nil and itemData.info or "",
+		label = itemInfo["label"],
+		description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
+		weight = itemInfo["weight"], 
+		type = itemInfo["type"], 
+		unique = itemInfo["unique"], 
+		useable = itemInfo["useable"], 
+		image = itemInfo["image"],
+		slot = toSlot,
+		id = dropId,
+	}
+	--TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..source.."*) dropped new item; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
+	TriggerClientEvent("inventory:client:DropItemAnim", source)
+	TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
+	--[[if itemData.name:lower() == "radio" then
+		TriggerClientEvent('qb-radio:onRadioDrop', source)
+	end]]--
 end
 
-QBCore.Commands.Add("resetinv", "Reset Inventory (Admin Only)", {{name="type", help="stash/trunk/glovebox"},{name="id/plate", help="ID of stash or license plate"}}, true, function(source, args)
-	local invType = args[1]:lower()
+RegisterCommand('resetinv', function(source, args, rawCommand)
+    local invType = args[1]:lower()
 	table.remove(args, 1)
 	local invId = table.concat(args, " ")
 	if invType ~= nil and invId ~= nil then 
@@ -1722,23 +1718,29 @@ QBCore.Commands.Add("resetinv", "Reset Inventory (Admin Only)", {{name="type", h
 				Stashes[invId].isOpen = false
 			end
 		else
-			TriggerClientEvent('QBCore:Notify', source,  "Not a valid type..", "error")
+            TriggerClientEvent('chat:addMessage', source, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Not a valid type.."}
+            })
 		end
 	else
-		TriggerClientEvent('QBCore:Notify', source,  "Args not filled out correctly..", "error")
+        TriggerClientEvent('chat:addMessage', source, {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"Args not filled out correctly.."}
+        })
 	end
-end, "admin")
+end, false) --TODO unrestricted for now
 
-QBCore.Commands.Add("trunkpos", "View Trunk Location", {}, false, function(source, args)
+RegisterCommand('trunkpos', function(source, args, rawCommand)
 	TriggerClientEvent("inventory:client:ShowTrunkPos", source)
-end)
+end, false)
 
-QBCore.Commands.Add("rob", "Rob Player", {}, false, function(source, args)
+RegisterCommand("rob", function(source, args, rawCommand)
 	TriggerClientEvent("police:client:RobPlayer", source)
 end)
 
-QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="Plaer ID"},{name="item", help="Name of the item (not a label)"}, {name="amount", help="Amount of items"}}, true, function(source, args)
-	local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
+RegisterCommand("giveitem", function(source, args, rawCommand)
+	local Player = MRP_SERVER.getSpawnedCharacter(tonumber(args[1]))
 	local amount = tonumber(args[3])
 	local itemData = MRPShared.Items[tostring(args[2]):lower()]
 	if Player ~= nil then
@@ -1760,30 +1762,39 @@ QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="
 					info.uses = 20
 				elseif itemData["name"] == "markedbills" then
 					info.worth = math.random(5000, 10000)
-				elseif itemData["name"] == "labkey" then
-					info.lab = exports["qb-methlab"]:GenerateRandomLab()
+				--elseif itemData["name"] == "labkey" then
+					--info.lab = exports["qb-methlab"]:GenerateRandomLab()
 				elseif itemData["name"] == "printerdocument" then
 					info.url = "https://cdn.discordapp.com/attachments/645995539208470549/707609551733522482/image0.png"
 				end
 
-				if Player.Functions.AddItem(itemData["name"], amount, false, info) then
-					TriggerClientEvent('QBCore:Notify', source, "You Have Given " ..GetPlayerName(tonumber(args[1])).." "..amount.." "..itemData["name"].. "", "success")
-				else
-					TriggerClientEvent('QBCore:Notify', source,  "Can't give item!", "error")
-				end
+                AddItem(Player, itemData["name"], amount, false, info)
+                TriggerClientEvent('chat:addMessage', source, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"You Have Given " ..GetPlayerName(tonumber(args[1])).." "..amount.." "..itemData["name"].. ""}
+                })
 			else
-				TriggerClientEvent('QBCore:Notify', source,  "Item Does Not Exist", "error")
+                TriggerClientEvent('chat:addMessage', source, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"Item Does Not Exist"}
+                })
 			end
 		else
-			TriggerClientEvent('QBCore:Notify', source,  "Invalid Amount", "error")
+            TriggerClientEvent('chat:addMessage', source, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Invalid Amount"}
+            })
 		end
 	else
-		TriggerClientEvent('QBCore:Notify', source,  "Invalid Player ID", "error")
+        TriggerClientEvent('chat:addMessage', source, {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"Invalid Player ID"}
+        })
 	end
-end, "admin")
+end, false) --TODO unrestricted for now
 
-QBCore.Commands.Add("randomitems", "Give Random Items (God Only)", {}, false, function(source, args)
-	local Player = QBCore.Functions.GetPlayer(source)
+RegisterCommand("randomitems", function(source, args, rawCommand)
+	local Player = MRP_SERVER.getSpawnedCharacter(source)
 	local filteredItems = {}
 	for k, v in pairs(MRPShared.Items) do
 		if MRPShared.Items[k]["type"] ~= "weapon" then
@@ -1796,14 +1807,14 @@ QBCore.Commands.Add("randomitems", "Give Random Items (God Only)", {}, false, fu
 		if randitem["unique"] then
 			amount = 1
 		end
-		if Player.Functions.AddItem(randitem["name"], amount) then
-			TriggerClientEvent('inventory:client:ItemBox', source, MRPShared.Items[randitem["name"]], 'add')
-            Citizen.Wait(500)
-		end
+		AddItem(Player, randitem["name"], amount)
+		TriggerClientEvent('inventory:client:ItemBox', source, MRPShared.Items[randitem["name"]], 'add')
+        Citizen.Wait(500)
 	end
-end, "god")
+end, false) --TODO unrestricted for now
 
-QBCore.Functions.CreateUseableItem("snowball", function(source, item)
+-- TODO useables
+--[[QBCore.Functions.CreateUseableItem("snowball", function(source, item)
 	local Player = QBCore.Functions.GetPlayer(source)
 	local itemData = Player.Functions.GetItemBySlot(item.slot)
 	if Player.Functions.GetItemBySlot(item.slot) ~= nil then
@@ -1839,4 +1850,4 @@ QBCore.Functions.CreateUseableItem("id_card", function(source, item)
 			})
 		end
 	end
-end)
+end)]]--
