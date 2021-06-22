@@ -1224,16 +1224,15 @@ function SaveStashItems(stashId, items)
 			for slot, item in pairs(items) do
 				item.description = nil
 			end
-
-			QBCore.Functions.ExecuteSql(false, "SELECT * FROM `stashitemsnew` WHERE `stash` = '"..stashId.."'", function(result)
-				if result[1] ~= nil then
-					QBCore.Functions.ExecuteSql(false, "UPDATE `stashitemsnew` SET `items` = '"..json.encode(items).."' WHERE `stash` = '"..stashId.."'")
-					Stashes[stashId].isOpen = false
-				else
-					QBCore.Functions.ExecuteSql(false, "INSERT INTO `stashitemsnew` (`stash`, `items`) VALUES ('"..stashId.."', '"..json.encode(items).."')")
-					Stashes[stashId].isOpen = false
-				end
-			end)
+            
+            local inventory = {
+                owner = stashId
+                items = items
+            }
+            
+            MRP.update('inventory', inventory, {owner = stashId}, {upsert=true}, function(res)
+                Stashes[stashId].isOpen = false
+            end)
 		end
 	end
 end
