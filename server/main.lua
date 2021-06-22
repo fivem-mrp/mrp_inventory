@@ -22,7 +22,7 @@ local function GetItemBySlot(ply, slot, cb)
             end
         end
         cb(item)
-    end
+    end)
 end
 
 local function GetItemByName(ply, name)
@@ -98,13 +98,13 @@ local function RemoveItem(ply, name, quantity, fromSlot)
     }, function(inventory)
         if inventory == nil then
             inventory = {
-                owner = ply._id
+                owner = ply._id,
                 items = {}
             }
         else
             if inventory.items ~= nil then
                 for k, v in pairs(inventory.items) do
-                    if v.name == name && v.slot == fromSlot then
+                    if v.name == name and (fromSlot ~= nil and v.slot == fromSlot) then
                         v.amount = v.amount - quantity
                         if v.quantity <= 0 then
                             table.remove(inventory.items, k)
@@ -811,7 +811,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
 			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
 			if toInventory == "player" or toInventory == "hotbar" then
-				GetItemBySlot(Player, toSlot function(toItemData)
+				GetItemBySlot(Player, toSlot, function(toItemData)
                     RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
     				if toItemData ~= nil then
     					local itemInfo = MRPShared.Items[toItemData.name:lower()]
@@ -1100,7 +1100,7 @@ function IsVehicleOwned(src, plate)
     }
 
     MRP_SERVER.read('vehicle', query, function(vehicle)
-        if vehicle != nil and MRP_SERVER.isObjectIDEqual(vehicle.owner, char._id) then
+        if vehicle ~= nil and MRP_SERVER.isObjectIDEqual(vehicle.owner, char._id) then
             val = true
         end
         doneProcessing = true
@@ -1226,7 +1226,7 @@ function SaveStashItems(stashId, items)
 			end
             
             local inventory = {
-                owner = stashId
+                owner = stashId,
                 items = items
             }
             
@@ -1367,7 +1367,7 @@ function SaveOwnedVehicleItems(plate, items)
             plate = MRPShared.Trim(plate)
             
             local inventory = {
-                owner = plate
+                owner = plate,
                 items = items
             }
             
@@ -1508,7 +1508,7 @@ function SaveOwnedGloveboxItems(plate, items)
             plate = MRPShared.Trim(plate)
             
             local inventory = {
-                owner = plate .. "-GLOVEBOX"
+                owner = plate .. "-GLOVEBOX",
                 items = items
             }
             
