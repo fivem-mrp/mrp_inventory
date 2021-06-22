@@ -119,14 +119,15 @@ end)
 RegisterServerEvent('inventory:server:CraftAttachment')
 AddEventHandler('inventory:server:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil and itemCosts ~= nil then
 		for k, v in pairs(itemCosts) do
-			Player.Functions.RemoveItem(k, (v*amount))
+			RemoveItem(Player, k, (v*amount))
 		end
-		Player.Functions.AddItem(itemName, amount, toSlot)
-		Player.Functions.SetMetaData("attachmentcraftingrep", Player.PlayerData.metadata["attachmentcraftingrep"]+(points*amount))
+		AddItem(Player, itemName, amount, toSlot)
+		--Player.Functions.SetMetaData("attachmentcraftingrep", Player.PlayerData.metadata["attachmentcraftingrep"]+(points*amount))
+        --TODO XP
 		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
