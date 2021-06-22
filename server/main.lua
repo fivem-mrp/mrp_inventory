@@ -8,6 +8,17 @@ Gloveboxes = {}
 Stashes = {}
 ShopItems = {}
 
+local function SplitStr(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={}
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
 local function AddItem(ply, itemId, quantity, slot)
     slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
     MRP_SERVER.read('inventory', {
@@ -15,7 +26,8 @@ local function AddItem(ply, itemId, quantity, slot)
     }, function(inventory)
         if inventory == nil then
             inventory = {
-                owner = ply._id
+                owner = ply._id,
+                ammo = {0}
             }
         end
         
@@ -148,13 +160,20 @@ end)
 RegisterServerEvent("inventory:server:OpenInventory")
 AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 	local src = source
-	local ply = Player(src)
-	local Player = QBCore.Functions.GetPlayer(src)
+	--local ply = Player(src)
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local PlayerAmmo = {}
-	if not ply.state.inv_busy then
-		QBCore.Functions.ExecuteSql(false, "SELECT * FROM `playerammo` WHERE `citizenid` = '"..Player.PlayerData.citizenid.."'", function(ammo)
+	--if not ply.state.inv_busy then
+        MRP_SERVER.read('inventory', {
+            owner = Player._id
+        }, function(inventory)
+            local ammo = {0}
+            if inventory ~= nil then
+                ammo = inventory.ammo
+            end
+            
 			if ammo[1] ~= nil then
-				PlayerAmmo = json.decode(ammo[1].ammo)
+				PlayerAmmo = ammo[1].ammo
 			end
 
 			if name ~= nil and id ~= nil then
@@ -162,7 +181,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 				if name == "stash" then
 					if Stashes[id] ~= nil then
 						if Stashes[id].isOpen then
-							local Target = QBCore.Functions.GetPlayer(Stashes[id].isOpen)
+							local Target = MRP_SERVER.getSpawnedCharacter(Stashes[id].isOpen)
 							if Target ~= nil then
 								TriggerClientEvent('inventory:client:CheckOpenState', Stashes[id].isOpen, name, id, Stashes[id].label)
 							else
@@ -205,7 +224,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 				elseif name == "trunk" then
 					if Trunks[id] ~= nil then
 						if Trunks[id].isOpen then
-							local Target = QBCore.Functions.GetPlayer(Trunks[id].isOpen)
+							local Target = MRP_SERVER.getSpawnedCharacter(Trunks[id].isOpen)
 							if Target ~= nil then
 								TriggerClientEvent('inventory:client:CheckOpenState', Trunks[id].isOpen, name, id, Trunks[id].label)
 							else
@@ -218,7 +237,9 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 					secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
 					secondInv.inventory = {}
 					secondInv.slots = other.slots ~= nil and other.slots or 50
-					if (Trunks[id] ~= nil and Trunks[id].isOpen) or (QBCore.Shared.SplitStr(id, "PLZI")[2] ~= nil and Player.PlayerData.job.name ~= "police") then
+					--if (Trunks[id] ~= nil and Trunks[id].isOpen) or (SplitStr(id, "PLZI")[2] ~= nil and Player.PlayerData.job.name ~= "police") then
+                    --TODO JOB
+                    if (Trunks[id] ~= nil and Trunks[id].isOpen) or (SplitStr(id, "PLZI")[2] ~= nil) then
 						secondInv.name = "none-inv"
 						secondInv.label = "Trunk-None"
 						secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
@@ -248,7 +269,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 				elseif name == "glovebox" then
 					if Gloveboxes[id] ~= nil then
 						if Gloveboxes[id].isOpen then
-							local Target = QBCore.Functions.GetPlayer(Gloveboxes[id].isOpen)
+							local Target = MRP_SERVER.getSpawnedCharacter(Gloveboxes[id].isOpen)
 							if Target ~= nil then
 								TriggerClientEvent('inventory:client:CheckOpenState', Gloveboxes[id].isOpen, name, id, Gloveboxes[id].label)
 							else
@@ -313,17 +334,18 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 					secondInv.inventory = other.items
 					secondInv.slots = #other.items
 				elseif name == "otherplayer" then
-					local OtherPlayer = QBCore.Functions.GetPlayer(tonumber(id))
+					local OtherPlayer = MRP_SERVER.getSpawnedCharacter(tonumber(id))
 					if OtherPlayer ~= nil then
 						secondInv.name = "otherplayer-"..id
 						secondInv.label = "Player-"..id
 						secondInv.maxweight = QBCore.Config.Player.MaxWeight
 						secondInv.inventory = OtherPlayer.PlayerData.items
-						if Player.PlayerData.job.name == "police" and Player.PlayerData.job.onduty then
+                        --TODO JOB
+						--[[if Player.PlayerData.job.name == "police" and Player.PlayerData.job.onduty then
 							secondInv.slots = QBCore.Config.Player.MaxInvSlots
-						else
+						else]]--
 							secondInv.slots = QBCore.Config.Player.MaxInvSlots - 1
-						end
+						--end
 						Citizen.Wait(250)
 					end
 				else
@@ -344,14 +366,14 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						--Drops[id].label = secondInv.label
 					end
 				end
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, Player.PlayerData.items, secondInv)
+				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory, secondInv)
 			else
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, Player.PlayerData.items)
+				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory)
 			end
 		end)
-    else
+    --[[else
     	TriggerClientEvent('QBCore:Notify', src, 'Not Accessible', 'error')
-    end 	
+    end ]]--	
 end)
 
 RegisterServerEvent("inventory:server:SaveInventory")
