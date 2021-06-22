@@ -25,6 +25,30 @@ local function GetItemBySlot(ply, slot, cb)
     end
 end
 
+local function GetItemByName(ply, name)
+    local item = nil
+    local doneProcessing = false
+    MRP_SERVER.read('inventory', {
+        owner = ply._id
+    }, function(inventory)
+        if inventory ~= nil and inventory.items ~= nil then
+            for k, v in pairs(inventory.items) do
+                if v.name == name then
+                    item = v
+                    break
+                end
+            end
+        end
+        doneProcessing = true
+    end)
+    
+    while not doneProcessing do
+        Citizen.Wait(10)
+    end
+    
+    return item
+end
+
 local function AddItem(ply, name, quantity, slot, info)
     MRP_SERVER.read('inventory', {
         owner = ply._id
@@ -1048,10 +1072,11 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 end)
 
 function hasCraftItems(source, CostItems, amount)
-	local Player = QBCore.Functions.GetPlayer(source)
+	local Player = MRP_SERVER.getSpawnedCharacter(source)
 	for k, v in pairs(CostItems) do
-		if Player.Functions.GetItemByName(k) ~= nil then
-			if Player.Functions.GetItemByName(k).amount < (v * amount) then
+        local item = GetItemByName(Player, k)
+		if item ~= nil then
+			if item.amount < (v * amount) then
 				return false
 			end
 		else
@@ -1063,6 +1088,7 @@ end
 
 function IsVehicleOwned(plate)
 	local val = false
+    
 	QBCore.Functions.ExecuteSql(true, "SELECT * FROM `player_vehicles` WHERE `plate` = '"..plate.."'", function(result)
 		if (result[1] ~= nil) then
 			val = true
