@@ -572,7 +572,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				end
     				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
     				AddToStash(stashId, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
-    			elseif MRPShared.SplitStr(toInventory, "-")[1] == "traphouse" then
+    			--[[elseif MRPShared.SplitStr(toInventory, "-")[1] == "traphouse" then
     				-- Traphouse
     				local traphouseId = MRPShared.SplitStr(toInventory, "-")[2]
     				local toItemData = exports['qb-traphouse']:GetInventoryData(traphouseId, toSlot)
@@ -596,7 +596,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     					exports['qb-traphouse']:AddHouseItem(traphouseId, toSlot, itemInfo["name"], fromAmount, fromItemData.info, src)
     				else
     					TriggerClientEvent('QBCore:Notify', src, "You can\'t sell this item..", 'error')
-    				end
+    				end]]--
     			else
     				-- drop
     				toInventory = tonumber(toInventory)
@@ -604,29 +604,32 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     					CreateNewDrop(src, fromSlot, toSlot, fromAmount)
     				else
     					local toItemData = Drops[toInventory].items[toSlot]
-    					Player.Functions.RemoveItem(fromItemData.name, fromAmount, fromSlot)
+    					RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
     					TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
     					if toItemData ~= nil then
     						local itemInfo = MRPShared.Items[toItemData.name:lower()]
     						local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     						if toItemData.name ~= fromItemData.name then
-    							Player.Functions.AddItem(toItemData.name, toAmount, fromSlot, toItemData.info)
+    							AddItem(Player, toItemData.name, toAmount, fromSlot, toItemData.info)
     							RemoveFromDrop(toInventory, fromSlot, itemInfo["name"], toAmount)
-    							TriggerEvent("qb-log:server:CreateLog", "drop", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
+    							--TriggerEvent("qb-log:server:CreateLog", "drop", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
     						end
     					else
     						local itemInfo = MRPShared.Items[fromItemData.name:lower()]
-    						TriggerEvent("qb-log:server:CreateLog", "drop", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
+    						--TriggerEvent("qb-log:server:CreateLog", "drop", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
     					end
     					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
     					AddToDrop(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
-    					if itemInfo["name"] == "radio" then
+    					--[[if itemInfo["name"] == "radio" then
     						TriggerClientEvent('qb-radio:onRadioDrop', src)
-    					end
+    					end]]--
     				end
     			end
     		else
-    			TriggerClientEvent("QBCore:Notify", src, "You don't have this item!", "error")
+                TriggerClientEvent('chat:addMessage', src, {
+                    template = '<div class="chat-message nonemergency">{0}</div>',
+                    args = {"You don't have this item!"}
+                })
     		end
         end)
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "otherplayer" then
