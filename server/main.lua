@@ -1364,12 +1364,12 @@ function SaveOwnedVehicleItems(plate, items)
 				item.description = nil
 			end
             
+            plate = MRPShared.Trim(plate)
+            
             local inventory = {
-                owner = stashId
+                owner = plate
                 items = items
             }
-            
-            plate = MRPShared.Trim(plate)
             
             MRP.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
                 Trunks[plate].isOpen = false
@@ -1457,9 +1457,20 @@ end
 -- Glovebox items
 function GetOwnedVehicleGloveboxItems(plate)
 	local items = {}
-	QBCore.Functions.ExecuteSql(true, "SELECT * FROM `gloveboxitems` WHERE `plate` = '"..plate.."'", function(result)
-		if result[1] ~= nil then
-			for k, item in pairs(result) do
+    
+    plate = MRPShared.Trim(plate)
+    
+    local doneProcessing = false
+    
+    MRP_SERVER.read('inventory', {owner=plate.."-GLOVEBOX"}, function(inventory)
+        local result = {}
+        
+        if inventory ~= nil then
+            result = inventory.items
+        end
+        
+        if result[1] ~= nil then
+            for k, item in pairs(result) do
 				local itemInfo = MRPShared.Items[item.name:lower()]
 				items[item.slot] = {
 					name = itemInfo["name"],
@@ -1475,35 +1486,15 @@ function GetOwnedVehicleGloveboxItems(plate)
 					slot = item.slot,
 				}
 			end
-			QBCore.Functions.ExecuteSql(false, "DELETE FROM `gloveboxitems` WHERE `plate` = '"..plate.."'")
-		else
-			QBCore.Functions.ExecuteSql(true, "SELECT * FROM `gloveboxitemsnew` WHERE `plate` = '"..plate.."'", function(result)
-				if result[1] ~= nil then 
-					if result[1].items ~= nil then
-						result[1].items = json.decode(result[1].items)
-						if result[1].items ~= nil then 
-							for k, item in pairs(result[1].items) do
-								local itemInfo = MRPShared.Items[item.name:lower()]
-								items[item.slot] = {
-									name = itemInfo["name"],
-									amount = tonumber(item.amount),
-									info = item.info ~= nil and item.info or "",
-									label = itemInfo["label"],
-									description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-									weight = itemInfo["weight"], 
-									type = itemInfo["type"], 
-									unique = itemInfo["unique"], 
-									useable = itemInfo["useable"], 
-									image = itemInfo["image"],
-									slot = item.slot,
-								}
-							end
-						end
-					end
-				end
-			end)
 		end
-	end)
+        
+        doneProcessing = true
+    end)
+    
+    while not doneProcessing do
+        Citizen.Wait(10)
+    end
+    
 	return items
 end
 
@@ -1513,6 +1504,17 @@ function SaveOwnedGloveboxItems(plate, items)
 			for slot, item in pairs(items) do
 				item.description = nil
 			end
+            
+            plate = MRPShared.Trim(plate)
+            
+            local inventory = {
+                owner = plate .. "-GLOVEBOX"
+                items = items
+            }
+            
+            MRP.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
+                Trunks[plate].isOpen = false
+            end)
 
 			QBCore.Functions.ExecuteSql(false, "SELECT * FROM `gloveboxitemsnew` WHERE `plate` = '"..plate.."'", function(result)
 				if result[1] ~= nil then
