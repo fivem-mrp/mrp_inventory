@@ -3,6 +3,10 @@ game 'gta5'
 
 description 'Inventory Made By Axis fixed up by ihyajb'
 
+dependencies {
+    "mrp_core"
+}
+
 server_scripts {
 	"config.lua",
 	"server/main.lua",

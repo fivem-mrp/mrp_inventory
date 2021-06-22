@@ -1,11 +1,80 @@
-QBCore = nil
-TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+MRP_SERVER = nil
+
+TriggerEvent('mrp:getSharedObject', function(obj) MRP_SERVER = obj end)
 
 Drops = {}
 Trunks = {}
 Gloveboxes = {}
 Stashes = {}
 ShopItems = {}
+
+local function AddItem(ply, itemId, quantity, slot)
+    slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
+    MRP_SERVER.read('inventory', {
+        owner = ply._id
+    }, function(inventory)
+        if inventory == nil then
+            inventory = {
+                owner = ply._id
+            }
+        end
+        
+        local added = false
+        if inventory.items ~= nil then
+            for k, v in pairs(inventory.items) do
+                if v.itemId == itemId then
+                    v.quantity = v.quantity + quantity
+                    v.slot = slot
+                    added = true
+                    break
+                end
+            end
+        else
+            inventory.items = {}
+        end
+        
+        if not added then
+            table.insert(inventory.items, {
+                itemId = itemId,
+                quantity = quantity
+                slot = slot
+            })
+        end
+        
+        MRP.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+            print('Inventory item added for ' .. ply.name .. ' ' .. ply.surname)
+        end)
+    end)
+end
+
+local function RemoveItem(ply, itemId, quantity)
+    MRP_SERVER.read('inventory', {
+        owner = ply._id
+    }, function(inventory)
+        if inventory == nil then
+            inventory = {
+                owner = ply._id
+                items = {}
+            }
+        else
+            if inventory.items ~= nil then
+                for k, v in pairs(inventory.items) do
+                    if v.itemId == itemId then
+                        v.quantity = v.quantity - quantity
+                        if v.quantity <= 0 then
+                            table.remove(inventory.items, k)
+                        end
+                        break
+                    end
+                end
+            end
+        end
+        
+        MRP.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+            print('Inventory item removed for ' .. ply.name .. ' ' .. ply.surname)
+        end)
+    end)
+end
 
 RegisterServerEvent("inventory:server:LoadDrops")
 AddEventHandler('inventory:server:LoadDrops', function()
@@ -25,24 +94,24 @@ end)
 RegisterServerEvent("inventory:server:combineItem")
 AddEventHandler('inventory:server:combineItem', function(item, fromItem, toItem)
 	local src = source
-	local ply = QBCore.Functions.GetPlayer(src)
-
-	ply.Functions.AddItem(item, 1)
-	ply.Functions.RemoveItem(fromItem, 1)
-	ply.Functions.RemoveItem(toItem, 1)
+	local ply = MRP_SERVER.getSpawnedCharacter(src)
+	AddItem(ply, item, 1)
+	RemoveItem(ply, fromItem, 1)
+	RemoveItem(ply, toItem, 1)
 end)
 
 RegisterServerEvent("inventory:server:CraftItems")
 AddEventHandler('inventory:server:CraftItems', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil and itemCosts ~= nil then
 		for k, v in pairs(itemCosts) do
-			Player.Functions.RemoveItem(k, (v*amount))
+			RemoveItem(Player, k, (v*amount))
 		end
-		Player.Functions.AddItem(itemName, amount, toSlot)
-		Player.Functions.SetMetaData("craftingrep", Player.PlayerData.metadata["craftingrep"]+(points*amount))
+		AddItem(Player, itemName, amount, toSlot)
+		--Player.Functions.SetMetaData("craftingrep", Player.PlayerData.metadata["craftingrep"]+(points*amount))
+        --TODO XP
 		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
