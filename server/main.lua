@@ -263,6 +263,10 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
             local ammo = {0}
             if inventory ~= nil then
                 ammo = inventory.ammo
+            else
+                inventory = {
+                    items = {}
+                }
             end
             
 			if ammo[1] ~= nil then
