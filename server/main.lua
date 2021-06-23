@@ -1715,35 +1715,36 @@ end
 
 function CreateNewDrop(source, fromSlot, toSlot, itemAmount)
 	local Player = MRP_SERVER.getSpawnedCharacter(source)
-	local itemData = GetItemBySlot(Player, fromSlot)
-	local coords = GetEntityCoords(GetPlayerPed(source))
-	RemoveItem(Player, itemData.name, itemAmount, itemData.slot)
-	TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
-	local itemInfo = MRPShared.Items[itemData.name:lower()]
-	local dropId = CreateDropId()
-	Drops[dropId] = {}
-	Drops[dropId].items = {}
-
-	Drops[dropId].items[toSlot] = {
-		name = itemInfo["name"],
-		amount = itemAmount,
-		info = itemData.info ~= nil and itemData.info or "",
-		label = itemInfo["label"],
-		description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-		weight = itemInfo["weight"], 
-		type = itemInfo["type"], 
-		unique = itemInfo["unique"], 
-		useable = itemInfo["useable"], 
-		image = itemInfo["image"],
-		slot = toSlot,
-		id = dropId,
-	}
-	--TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..source.."*) dropped new item; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
-	TriggerClientEvent("inventory:client:DropItemAnim", source)
-	TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
-	--[[if itemData.name:lower() == "radio" then
-		TriggerClientEvent('qb-radio:onRadioDrop', source)
-	end]]--
+	GetItemBySlot(Player, fromSlot, function(itemData)
+        local coords = GetEntityCoords(GetPlayerPed(source))
+    	RemoveItem(Player, itemData.name, itemAmount, itemData.slot)
+    	TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
+    	local itemInfo = MRPShared.Items[itemData.name:lower()]
+    	local dropId = CreateDropId()
+    	Drops[dropId] = {}
+    	Drops[dropId].items = {}
+    
+    	Drops[dropId].items[toSlot] = {
+    		name = itemInfo["name"],
+    		amount = itemAmount,
+    		info = itemData.info ~= nil and itemData.info or "",
+    		label = itemInfo["label"],
+    		description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
+    		weight = itemInfo["weight"], 
+    		type = itemInfo["type"], 
+    		unique = itemInfo["unique"], 
+    		useable = itemInfo["useable"], 
+    		image = itemInfo["image"],
+    		slot = toSlot,
+    		id = dropId,
+    	}
+    	--TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..source.."*) dropped new item; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
+    	TriggerClientEvent("inventory:client:DropItemAnim", source)
+    	TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
+    	--[[if itemData.name:lower() == "radio" then
+    		TriggerClientEvent('qb-radio:onRadioDrop', source)
+    	end]]--
+    end)
 end
 
 RegisterCommand('resetinv', function(source, args, rawCommand)
