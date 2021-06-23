@@ -218,7 +218,7 @@ RegisterCommand('hotbar', function()
     isHotbar = not isHotbar
     ToggleHotbar(isHotbar)
 end)
-RegisterKeyMapping('hotbar', 'Toggles keybind slots', 'keyboard', 'z')
+RegisterKeyMapping('hotbar', 'Toggles keybind slots', 'keyboard', 'h')
 
 for i=1, 6 do 
     RegisterCommand('slot' .. i,function()
@@ -531,21 +531,24 @@ AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
         currentWeapon = weaponName
     else
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
-        QBCore.Functions.TriggerCallback("weapon:server:GetWeaponAmmo", function(result)
-            local ammo = tonumber(result)
-            if weaponName == "weapon_petrolcan" or weaponName == "weapon_fireextinguisher" then 
-                ammo = 4000 
+        local ammo = 0
+        if weaponData ~= nil and weaponData.info ~= nil and weaponData.info.ammo then
+            ammo = weaponData.info.ammo
+            ammo = tonumber(ammo)
+        end
+        
+        if weaponName == "weapon_petrolcan" or weaponName == "weapon_fireextinguisher" then 
+            ammo = 4000 
+        end
+        GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
+        SetPedAmmo(ped, GetHashKey(weaponName), ammo)
+        SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
+        if weaponData.info.attachments ~= nil then
+            for _, attachment in pairs(weaponData.info.attachments) do
+                GiveWeaponComponentToPed(ped, GetHashKey(weaponName), GetHashKey(attachment.component))
             end
-            GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
-            SetPedAmmo(ped, GetHashKey(weaponName), ammo)
-            SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
-            if weaponData.info.attachments ~= nil then
-                for _, attachment in pairs(weaponData.info.attachments) do
-                    GiveWeaponComponentToPed(ped, GetHashKey(weaponName), GetHashKey(attachment.component))
-                end
-            end
-            currentWeapon = weaponName
-        end, CurrentWeaponData)
+        end
+        currentWeapon = weaponName
     end
 end)
 
@@ -848,6 +851,18 @@ function IsBackEngine(vehModel)
     return false
 end
 
+local function getItemBySlot(items, slot)
+    local item = nil
+    
+    for k, v in pairs(items) do
+        if v.slot == slot then
+            item = v
+        end
+    end
+    
+    return item
+end
+
 function ToggleHotbar(toggle)
     local player = MRP_CLIENT.GetPlayerData()
     MRP_CLIENT.TriggerServerCallback('inventory:server:getInventory', {{owner = player._id}}, function(inventory)
@@ -857,12 +872,12 @@ function ToggleHotbar(toggle)
         end
         
         local HotbarItems = {
-            [1] = items[1],
-            [2] = items[2],
-            [3] = items[3],
-            [4] = items[4],
-            [5] = items[5],
-            [41] = items[41],
+            [1] = getItemBySlot(items, 1),
+            [2] = getItemBySlot(items, 2),
+            [3] = getItemBySlot(items, 3),
+            [4] = getItemBySlot(items, 4),
+            [5] = getItemBySlot(items, 5),
+            [41] = getItemBySlot(items, 41),
         } 
     
         if toggle then
