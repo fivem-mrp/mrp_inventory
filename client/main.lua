@@ -20,6 +20,7 @@ local isHotbar = false
 local showTrunkPos = false
 local craftingDoneCallback = nil
 local pickupsnowballDoneCallback = nil
+local combineDoneCallback = nil
 
 Citizen.CreateThread(function() 
     while MRP_CLIENT == nil do
@@ -500,6 +501,7 @@ end)
 
 RegisterNetEvent("inventory:client:UseWeapon")
 AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
+    --TODO need to figure out weapons
     local ped = PlayerPedId()
     local weaponName = tostring(weaponData.name)
     if currentWeapon == weaponName then
@@ -511,14 +513,14 @@ AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), 1)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
-        TriggerServerEvent('QBCore:Server:RemoveItem', weaponName, 1)
+        TriggerServerEvent('inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
         currentWeapon = weaponName
     elseif weaponName == "weapon_snowball" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), 10)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
-        TriggerServerEvent('QBCore:Server:RemoveItem', weaponName, 1)
+        TriggerServerEvent('inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
         currentWeapon = weaponName
     else
@@ -626,15 +628,16 @@ end
 
 RegisterNUICallback('GetWeaponData', function(data, cb)
     local data = {
-        WeaponData = QBCore.Shared.Items[data.weapon],
+        WeaponData = MRP_SERVER.Items[data.weapon],
         AttachmentData = FormatWeaponAttachments(data.ItemData)
     }
     cb(data)
 end)
 
 RegisterNUICallback('RemoveAttachment', function(data, cb)
+    --TODO need to figure out weapons
     local ped = PlayerPedId()
-    local WeaponData = QBCore.Shared.Items[data.WeaponData.name]
+    local WeaponData = MRP_SERVER.Items[data.WeaponData.name]
     local Attachment = WeaponAttachments[WeaponData.name:upper()][data.AttachmentData.attachment]
     
     QBCore.Functions.TriggerCallback('weapons:server:RemoveAttachment', function(NewAttachments)
@@ -665,6 +668,7 @@ end)
 
 RegisterNetEvent("inventory:client:CheckWeapon")
 AddEventHandler("inventory:client:CheckWeapon", function(weaponName)
+    --TODO need to figure out weapons
     local ped = PlayerPedId()
     if currentWeapon == weaponName then 
         TriggerEvent('weapons:ResetHolster')
@@ -714,7 +718,7 @@ AddEventHandler("inventory:client:SetCurrentStash", function(stash)
 end)
 
 RegisterNUICallback('getCombineItem', function(data, cb)
-    cb(QBCore.Shared.Items[data.item])
+    cb(MRPShared.Items[data.item])
 end)
 
 RegisterNUICallback("CloseInventory", function(data, cb)
@@ -755,7 +759,14 @@ end)
 RegisterNUICallback("combineItem", function(data)
     Citizen.Wait(150)
     TriggerServerEvent('inventory:server:combineItem', data.reward, data.fromItem, data.toItem)
-    TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[data.reward], 'add')
+    TriggerEvent('inventory:client:ItemBox', MRPShared.Items[data.reward], 'add')
+end)
+
+RegisterNUICallback('combine_done', function(data)
+    if combineDoneCallback ~= nil then
+        combineDoneCallback()
+        combineDoneCallback = nil
+    end
 end)
 
 RegisterNUICallback('combineWithAnim', function(data)
@@ -765,24 +776,20 @@ RegisterNUICallback('combineWithAnim', function(data)
     local aLib = combineData.anim.lib
     local animText = combineData.anim.text
     local animTimeout = combineData.anim.timeOut
-
-    QBCore.Functions.Progressbar("combine_anim", animText, animTimeout, false, true, {
-        disableMovement = false,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true,
-    }, {
-        animDict = aDict,
-        anim = aLib,
-        flags = 16,
-    }, {}, {}, function() -- Done
+    
+    LoadAnimDict(aDict)
+    TaskPlayAnim(ped, aDict, aLib, 3.0, 3.0, -1, 16, 1, true, true, true)
+    
+    TriggerEvent('mrp:startTimer', {
+        timer = animTimeout,
+        timerAction = 'https://mrp_inventory/combine_done'
+    })
+    
+    combineDoneCallback = function()
         StopAnimTask(ped, aDict, aLib, 1.0)
         TriggerServerEvent('inventory:server:combineItem', combineData.reward, data.requiredItem, data.usedItem)
         TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[combineData.reward], 'add')
-    end, function() -- Cancel
-        StopAnimTask(ped, aDict, aLib, 1.0)
-        QBCore.Functions.Notify("Failed!", "error")
-    end)
+    end
 end)
 
 RegisterNUICallback("SetInventoryData", function(data, cb)

@@ -172,6 +172,17 @@ AddEventHandler('inventory:server:AddItem', function(itemName, amount, slot, inf
 	end
 end)
 
+RegisterServerEvent("inventory:server:RemoveItem")
+AddEventHandler('inventory:server:RemoveItem', function(itemName, amount, slot, info)
+	local src = source
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
+	local amount = tonumber(amount)
+	if itemName ~= nil then
+		RemoveItem(Player, itemName, amount, toSlot)
+		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+	end
+end)
+
 RegisterServerEvent('inventory:server:CraftAttachment')
 AddEventHandler('inventory:server:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
