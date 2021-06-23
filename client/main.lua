@@ -788,7 +788,7 @@ RegisterNUICallback('combineWithAnim', function(data)
     combineDoneCallback = function()
         StopAnimTask(ped, aDict, aLib, 1.0)
         TriggerServerEvent('inventory:server:combineItem', combineData.reward, data.requiredItem, data.usedItem)
-        TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[combineData.reward], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[combineData.reward], 'add')
     end
 end)
 
@@ -806,7 +806,7 @@ end)
 
 function OpenTrunk()
     Wait(500)
-    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local vehicle = exports["mrp_core"].GetClosestVehicle()
     while (not HasAnimDictLoaded("amb@prop_human_bum_bin@idle_b")) do
         RequestAnimDict("amb@prop_human_bum_bin@idle_b")
         Citizen.Wait(100)
@@ -820,7 +820,7 @@ function OpenTrunk()
 end
 
 function CloseTrunk()
-    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local vehicle = exports["mrp_core"].GetClosestVehicle()
     while (not HasAnimDictLoaded("amb@prop_human_bum_bin@idle_b")) do
         RequestAnimDict("amb@prop_human_bum_bin@idle_b")
         Citizen.Wait(100)
