@@ -634,7 +634,7 @@ end
 
 RegisterNUICallback('GetWeaponData', function(data, cb)
     local data = {
-        WeaponData = MRP_SERVER.Items[data.weapon],
+        WeaponData = MRPShared.Items[data.weapon],
         AttachmentData = FormatWeaponAttachments(data.ItemData)
     }
     cb(data)
