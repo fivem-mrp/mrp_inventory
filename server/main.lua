@@ -122,7 +122,7 @@ local function RemoveItem(ply, name, quantity, fromSlot)
                 for k, v in pairs(inventory.items) do
                     if v.name == name and (fromSlot ~= nil and v.slot == fromSlot) then
                         v.amount = v.amount - quantity
-                        if v.quantity <= 0 then
+                        if v.amount <= 0 then
                             table.remove(inventory.items, k)
                         end
                         break
