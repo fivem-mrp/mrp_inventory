@@ -514,6 +514,7 @@ AddEventHandler('inventory:server:UseItem', function(inventory, item)
 	if inventory == "player" or inventory == "hotbar" then
         GetItemBySlot(Player, item.slot, function(itemData)
             if itemData ~= nil then
+                --TODO use items in MRP
     			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
     		end
         end)
