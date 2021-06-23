@@ -1553,26 +1553,16 @@ function SaveOwnedGloveboxItems(plate, items)
             
             plate = MRPShared.Trim(plate)
             
+            local owner = plate .. "-GLOVEBOX"
+            
             local inventory = {
-                owner = plate .. "-GLOVEBOX",
+                owner = owner,
                 items = items
             }
             
-            MRP_SERVER.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
+            MRP_SERVER.update('inventory', inventory, {owner = owner}, {upsert=true}, function(res)
                 Trunks[plate].isOpen = false
             end)
-
-			QBCore.Functions.ExecuteSql(false, "SELECT * FROM `gloveboxitemsnew` WHERE `plate` = '"..plate.."'", function(result)
-				if result[1] ~= nil then
-					QBCore.Functions.ExecuteSql(false, "UPDATE `gloveboxitemsnew` SET `items` = '"..json.encode(items).."' WHERE `plate` = '"..plate.."'", function(result) 
-						Gloveboxes[plate].isOpen = false
-					end)
-				else
-					QBCore.Functions.ExecuteSql(false, "INSERT INTO `gloveboxitemsnew` (`plate`, `items`) VALUES ('"..plate.."', '"..json.encode(items).."')", function(result) 
-						Gloveboxes[plate].isOpen = false
-					end)
-				end
-			end)
 		end
 	end
 end
