@@ -48,6 +48,30 @@ local function GetItemByName(ply, name)
     return item
 end
 
+local function findAvailableSlot(inventory)
+    local foundSlot = 1
+    if inventory == nil or inventory.items == nil then
+        return 1
+    end
+    
+    for i = 1, MaxInventorySlots, 1 do
+        local found = false
+        for k, v in pairs(inventory.items) do
+            if v.slot == i then
+                found = true
+                break
+            end
+        end
+        
+        if not found then
+            foundSlot = i
+            break
+        end
+    end
+    
+    return foundSlot
+end
+
 local function AddItem(ply, name, quantity, slot, info)
     MRP_SERVER.read('inventory', {
         owner = ply._id
@@ -60,6 +84,10 @@ local function AddItem(ply, name, quantity, slot, info)
         end
         
         local item = MRPShared.Items[name]
+        
+        if slot == nil or not slot then
+            slot = findAvailableSlot(inventory)
+        end
         
         local added = false
         local itemsCount = 0
@@ -80,11 +108,6 @@ local function AddItem(ply, name, quantity, slot, info)
         end
         
         if not added then
-            if slot == nil then
-                itemsCount = itemsCount + 1
-                slot = itemsCount
-            end
-            
             if quantity then
                 item.amount = quantity
             end
@@ -408,13 +431,13 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 					if OtherPlayer ~= nil then
 						secondInv.name = "otherplayer-"..id
 						secondInv.label = "Player-"..id
-						secondInv.maxweight = QBCore.Config.Player.MaxWeight
-						secondInv.inventory = OtherPlayer.PlayerData.items
+						secondInv.maxweight = Config.MaxWeight
+						secondInv.inventory = OtherPlayer.PlayerData.items --TODO
                         --TODO JOB
 						--[[if Player.PlayerData.job.name == "police" and Player.PlayerData.job.onduty then
 							secondInv.slots = QBCore.Config.Player.MaxInvSlots
 						else]]--
-							secondInv.slots = QBCore.Config.Player.MaxInvSlots - 1
+							secondInv.slots = MaxInventorySlots - 1
 						--end
 						Citizen.Wait(250)
 					end
@@ -1794,12 +1817,11 @@ RegisterCommand("giveitem", function(source, args, rawCommand)
 				-- check iteminfo
 				local info = {}
 				if itemData["name"] == "id_card" then
-					info.citizenid = Player.PlayerData.citizenid
-					info.firstname = Player.PlayerData.charinfo.firstname
-					info.lastname = Player.PlayerData.charinfo.lastname
-					info.birthdate = Player.PlayerData.charinfo.birthdate
-					info.gender = Player.PlayerData.charinfo.gender
-					info.nationality = Player.PlayerData.charinfo.nationality
+					info.citizenid = Player.stateId
+					info.firstname = Player.name
+					info.lastname = Player.surname
+					--info.birthdate = Player.birthday
+					info.gender = Player.sex
 				elseif itemData["type"] == "weapon" then
 					amount = 1
 					info.serie = tostring(Config.RandomInt(2) .. Config.RandomStr(3) .. Config.RandomInt(1) .. Config.RandomStr(2) .. Config.RandomInt(3) .. Config.RandomStr(4))
