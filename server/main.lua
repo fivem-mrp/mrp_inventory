@@ -120,7 +120,6 @@ local function AddItem(ply, name, quantity, slot, info)
             
             item.slot = slot
             
-            --slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
             table.insert(inventory.items, item)
         end
         
@@ -1248,35 +1247,6 @@ function GetStashItems(stashId)
 					slot = item.slot,
 				}
 			end
-			--QBCore.Functions.ExecuteSql(false, "DELETE FROM `stashitems` WHERE `stash` = '"..stashId.."'")
-            --TODO not sure why deleting is needed when we are getting items
-        -- don't think I need stashitemsnew it's still an inventory in my design same as stashitems
-		--[[else
-			QBCore.Functions.ExecuteSql(true, "SELECT * FROM `stashitemsnew` WHERE `stash` = '"..stashId.."'", function(result)
-				if result[1] ~= nil then 
-					if result[1].items ~= nil then
-						result[1].items = json.decode(result[1].items)
-						if result[1].items ~= nil then 
-							for k, item in pairs(result[1].items) do
-								local itemInfo = MRPShared.Items[item.name:lower()]
-								items[item.slot] = {
-									name = itemInfo["name"],
-									amount = tonumber(item.amount),
-									info = item.info ~= nil and item.info or "",
-									label = itemInfo["label"],
-									description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
-									weight = itemInfo["weight"], 
-									type = itemInfo["type"], 
-									unique = itemInfo["unique"], 
-									useable = itemInfo["useable"], 
-									image = itemInfo["image"],
-									slot = item.slot,
-								}
-							end
-						end
-					end
-				end
-			end)]]--
 		end
         
         p:resolve(true)
