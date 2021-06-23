@@ -60,9 +60,13 @@ local function AddItem(ply, name, quantity, slot, info)
             }
         end
         
+        local item = MRPShared.Items[name]
+        
         local added = false
+        local itemsCount = 0
         if inventory.items ~= nil then
             for k, v in pairs(inventory.items) do
+                itemsCount = itemsCount + 1
                 if v.name == name then
                     v.amount = v.amount + quantity
                     if slot then
@@ -77,13 +81,25 @@ local function AddItem(ply, name, quantity, slot, info)
         end
         
         if not added then
+            if slot == nil then
+                itemsCount = itemsCount + 1
+                slot = itemsCount
+            end
+            
+            if quantity then
+                item.amount = quantity
+            end
+            
+            if info then
+                item.info = info
+            else
+                item.info = ""
+            end
+            
+            item.slot = slot
+            
             --slot = slot or 1 --TODO be careful here not sure if defaulting to 1 is fine
-            table.insert(inventory.items, {
-                name = name,
-                amount = quantity,
-                info = item,
-                slot = slot
-            })
+            table.insert(inventory.items, item)
         end
         
         MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
@@ -228,7 +244,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
             end
             
 			if ammo[1] ~= nil then
-				PlayerAmmo = ammo[1].ammo
+				PlayerAmmo = ammo[1]
 			end
 
 			if name ~= nil and id ~= nil then
@@ -421,9 +437,9 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						--Drops[id].label = secondInv.label
 					end
 				end
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory, secondInv)
+				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
 			else
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory)
+				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory.items)
 			end
 		end)
     --[[else

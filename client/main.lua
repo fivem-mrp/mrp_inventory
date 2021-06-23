@@ -141,7 +141,7 @@ Citizen.CreateThread(function()
                                 curVeh = vehicle
                                 CurrentGlovebox = nil
                             else
-                                TriggerClientEvent('chat:addMessage', src, {
+                                TriggerEvent('chat:addMessage', {
                                     template = '<div class="chat-message nonemergency">{0}</div>',
                                     args = {"Vehicle is locked"}
                                 })
@@ -248,7 +248,7 @@ AddEventHandler('inventory:client:requiredItems', function(items, bool)
         for k, v in pairs(items) do
             table.insert(itemTable, {
                 item = items[k].name,
-                label = QBCore.Shared.Items[items[k].name]["label"],
+                label = MRPShared.Items[items[k].name]["label"],
                 image = items[k].image,
             })
         end
@@ -318,7 +318,7 @@ RegisterNUICallback('RobMoney', function(data, cb)
 end)
 
 RegisterNUICallback('Notify', function(data, cb)
-    TriggerClientEvent('chat:addMessage', src, {
+    TriggerEvent('chat:addMessage', {
         template = '<div class="chat-message nonemergency">{0}</div>',
         args = {data.message}
     })
@@ -338,7 +338,7 @@ AddEventHandler("inventory:client:OpenInventory", function(PlayerAmmo, inventory
             inventory = inventory,
             slots = MaxInventorySlots,
             other = other,
-            maxweight = QBCore.Config.Player.MaxWeight,
+            maxweight = Config.MaxWeight,
             Ammo = PlayerAmmo,
             maxammo = Config.MaximumAmmoValues,
         })
@@ -359,10 +359,16 @@ RegisterNUICallback("GiveItem", function(data, cb)
             TriggerServerEvent("inventory:server:GiveItem", playerId, data.inventory, data.item, data.amount)
             print(data.amount)
         else
-            QBCore.Functions.Notify("No one nearby!", "error")
+            TriggerEvent('chat:addMessage', {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"No one nearby!"}
+            })
         end
     else
-        QBCore.Functions.Notify("No one nearby!", "error")
+        TriggerEvent('chat:addMessage', {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"No one nearby!"}
+        })
     end
 end)
 
@@ -487,7 +493,7 @@ AddEventHandler("inventory:client:PickupSnowballs", function()
     pickupsnowballDoneCallback = function()
         ClearPedTasks(ped)
         TriggerServerEvent('inventory:server:AddItem', "snowball", 1)
-        TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["snowball"], "add")
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items["snowball"], "add")
     end
 end)
 
@@ -843,27 +849,35 @@ function IsBackEngine(vehModel)
 end
 
 function ToggleHotbar(toggle)
-    local HotbarItems = {
-        [1] = QBCore.Functions.GetPlayerData().items[1],
-        [2] = QBCore.Functions.GetPlayerData().items[2],
-        [3] = QBCore.Functions.GetPlayerData().items[3],
-        [4] = QBCore.Functions.GetPlayerData().items[4],
-        [5] = QBCore.Functions.GetPlayerData().items[5],
-        [41] = QBCore.Functions.GetPlayerData().items[41],
-    } 
-
-    if toggle then
-        SendNUIMessage({
-            action = "toggleHotbar",
-            open = true,
-            items = HotbarItems
-        })
-    else
-        SendNUIMessage({
-            action = "toggleHotbar",
-            open = false,
-        })
-    end
+    local player = MRP_CLIENT.GetPlayerData()
+    MRP_CLIENT.TriggerServerCallback('inventory:server:getInventory', {{owner = player._id}}, function(inventory)
+        local items = {}
+        if inventory ~= nil then
+            items = inventory.items
+        end
+        
+        local HotbarItems = {
+            [1] = items[1],
+            [2] = items[2],
+            [3] = items[3],
+            [4] = items[4],
+            [5] = items[5],
+            [41] = items[41],
+        } 
+    
+        if toggle then
+            SendNUIMessage({
+                action = "toggleHotbar",
+                open = true,
+                items = HotbarItems
+            })
+        else
+            SendNUIMessage({
+                action = "toggleHotbar",
+                open = false,
+            })
+        end
+    end)
 end
 
 function LoadAnimDict( dict )
