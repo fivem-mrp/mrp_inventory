@@ -27,7 +27,8 @@ end
 
 local function GetItemByName(ply, name)
     local item = nil
-    local doneProcessing = false
+    local p = promise.new()
+    
     MRP_SERVER.read('inventory', {
         owner = ply._id
     }, function(inventory)
@@ -39,12 +40,10 @@ local function GetItemByName(ply, name)
                 end
             end
         end
-        doneProcessing = true
+        p:resolve(true)
     end)
     
-    while not doneProcessing do
-        Citizen.Wait(10)
-    end
+    Citizen.Await(p)
     
     return item
 end
@@ -1135,7 +1134,7 @@ end
 function IsVehicleOwned(src, plate)
 	local val = false
     
-    local doneProcessing = false
+    local p = promise.new()
     
     plate = MRPShared.Trim(plate)
 
@@ -1149,12 +1148,10 @@ function IsVehicleOwned(src, plate)
         if vehicle ~= nil and MRP_SERVER.isObjectIDEqual(vehicle.owner, char._id) then
             val = true
         end
-        doneProcessing = true
+        p:resolve(true)
     end)
     
-    while not doneProcessing do
-        Citizen.Wait(10)
-    end
+    Citizen.Await(p)
 
 	return val
 end
@@ -1197,7 +1194,7 @@ end
 function GetStashItems(stashId)
 	local items = {}
     
-    local doneProcessing = false
+    local p = promise.new()
     
     MRP_SERVER.read('inventory', {owner=stashId}, function(inventory)
         local result = {}
@@ -1254,12 +1251,10 @@ function GetStashItems(stashId)
 			end)]]--
 		end
         
-        doneProcessing = true
+        p:resolve(true)
     end)
     
-    while not doneProcessing do
-        Citizen.Wait(10)
-    end
+    Citizen.Await(p)
     
 	return items
 end
@@ -1365,7 +1360,7 @@ function GetOwnedVehicleItems(plate)
     
     plate = MRPShared.Trim(plate)
     
-    local doneProcessing = false
+    local p = promise.new()
     
     MRP_SERVER.read('inventory', {owner=plate}, function(inventory)
         local result = {}
@@ -1393,12 +1388,16 @@ function GetOwnedVehicleItems(plate)
 			end
 		end
         
-        doneProcessing = true
+        p:resolve(true)
     end)
     
-    while not doneProcessing do
-        Citizen.Wait(10)
+    Citizen.Await(p)
+    
+    if Trunks[plate] == nil then
+        Trunks[plate] = {}
     end
+    
+    Trunks[plate].items = items
 	
 	return items
 end
@@ -1418,7 +1417,9 @@ function SaveOwnedVehicleItems(plate, items)
             }
             
             MRP_SERVER.update('inventory', inventory, {owner = plate}, {upsert=true}, function(res)
-                Trunks[plate].isOpen = false
+                if Trunks[plate] ~= nil then
+                    Trunks[plate].isOpen = false
+                end
             end)
 		end
 	end
@@ -1506,7 +1507,7 @@ function GetOwnedVehicleGloveboxItems(plate)
     
     plate = MRPShared.Trim(plate)
     
-    local doneProcessing = false
+    local p = promise.new()
     
     MRP_SERVER.read('inventory', {owner=plate.."-GLOVEBOX"}, function(inventory)
         local result = {}
@@ -1534,12 +1535,16 @@ function GetOwnedVehicleGloveboxItems(plate)
 			end
 		end
         
-        doneProcessing = true
+        p:resolve(true)
     end)
     
-    while not doneProcessing do
-        Citizen.Wait(10)
+    Citizen.Await(p)
+    
+    if Gloveboxes[plate] == nil then
+        Gloveboxes[plate] = {}
     end
+    
+    Gloveboxes[plate].items = items
     
 	return items
 end
@@ -1561,7 +1566,9 @@ function SaveOwnedGloveboxItems(plate, items)
             }
             
             MRP_SERVER.update('inventory', inventory, {owner = owner}, {upsert=true}, function(res)
-                Trunks[plate].isOpen = false
+                if Gloveboxes[plate] ~= nil then
+                    Gloveboxes[plate].isOpen = false
+                end
             end)
 		end
 	end

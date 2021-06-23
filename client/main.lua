@@ -102,7 +102,7 @@ Citizen.CreateThread(function()
                     end
                     MRP_CLIENT.drawText3D(drawpos.x, drawpos.y, drawpos.z, "Trunk")
                     if #(pos - drawpos) < 2.0 and not IsPedInAnyVehicle(ped) then
-                        CurrentVehicle = GetVehicleNumberPlateText(vehicle)
+                        CurrentVehicle = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
                         showTrunkPos = false
                     end
                 else
@@ -124,7 +124,7 @@ Citizen.CreateThread(function()
                 local curVeh = nil
                 if IsPedInAnyVehicle(ped) then
                     local vehicle = GetVehiclePedIsIn(ped, false)
-                    CurrentGlovebox = GetVehicleNumberPlateText(vehicle)
+                    CurrentGlovebox = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
                     curVeh = vehicle
                     CurrentVehicle = nil
                 else
@@ -137,7 +137,7 @@ Citizen.CreateThread(function()
                         end
                         if #(pos - trunkpos) < 2.0 and not IsPedInAnyVehicle(ped) then
                             if GetVehicleDoorLockStatus(vehicle) < 2 then
-                                CurrentVehicle = GetVehicleNumberPlateText(vehicle)
+                                CurrentVehicle = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
                                 curVeh = vehicle
                                 CurrentGlovebox = nil
                             else
