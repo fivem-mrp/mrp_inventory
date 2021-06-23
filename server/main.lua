@@ -436,6 +436,14 @@ AddEventHandler('inventory:server:SaveInventory', function(type, id)
 	end
 end)
 
+RegisterServerEvent("inventory:server:getInventory")
+AddEventHandler('inventory:server:getInventory', function(query, uuid)
+    local src = source
+    MRP_SERVER.read('inventory', query, function(inventory)
+        TriggerClientEvent("inventory:server:getInventory:response", src, inventory, uuid)
+    end)
+end)
+
 RegisterServerEvent("inventory:server:UseItemSlot")
 AddEventHandler('inventory:server:UseItemSlot', function(slot)
 	local src = source

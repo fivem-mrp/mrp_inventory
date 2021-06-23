@@ -23,6 +23,8 @@ Config.RandomInt = function(length)
 	end
 end
 
+Config.MaxWeight = 120000
+
 Config.CraftingItems = {
     [1] = {
         name = "lockpick",

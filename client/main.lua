@@ -315,7 +315,10 @@ RegisterNUICallback('RobMoney', function(data, cb)
 end)
 
 RegisterNUICallback('Notify', function(data, cb)
-    QBCore.Functions.Notify(data.message, data.type)
+    TriggerClientEvent('chat:addMessage', src, {
+        template = '<div class="chat-message nonemergency">{0}</div>',
+        args = {data.message}
+    })
 end)
 
 RegisterNetEvent("inventory:client:OpenInventory")
@@ -361,19 +364,19 @@ RegisterNUICallback("GiveItem", function(data, cb)
 end)
 
 function GetClosestPlayer()
-    local closestPlayers = QBCore.Functions.GetPlayersFromCoords()
-    local closestDistance = -1
+    local ped = PlayerPedId()
+    local playerCoords = GetEntityCoords(ped)
+    local closestDistance = 99999
     local closestPlayer = -1
-    local coords = GetEntityCoords(GetPlayerPed(-1))
-
-    for i=1, #closestPlayers, 1 do
-        if closestPlayers[i] ~= PlayerId() then
-            local pos = GetEntityCoords(GetPlayerPed(closestPlayers[i]))
-            local distance = GetDistanceBetweenCoords(pos.x, pos.y, pos.z, coords.x, coords.y, coords.z, true)
-
-            if closestDistance == -1 or closestDistance > distance then
-                closestPlayer = closestPlayers[i]
-                closestDistance = distance
+    for key, value in pairs(exports.mrp_core:EnumeratePeds()) do
+        local playerHandle = NetworkGetPlayerIndexFromPed(value)
+        if NetworkIsPlayerActive(playerHandle) then
+            local targetCoords = GetEntityCoords(value)
+            
+            local dist = Vdist(playerCoords.x, playerCoords.y, playerCoords.z, targetCoords.x, targetCoords.y, targetCoords.z)
+            if dist < closestPlayer then
+                closestPlayer = value
+                closestPlayer = dist
             end
         end
 	end
@@ -388,13 +391,21 @@ end)
 
 RegisterNetEvent("inventory:client:UpdatePlayerInventory")
 AddEventHandler("inventory:client:UpdatePlayerInventory", function(isError)
-    SendNUIMessage({
-        action = "update",
-        inventory = QBCore.Functions.GetPlayerData().items,
-        maxweight = QBCore.Config.Player.MaxWeight,
-        slots = MaxInventorySlots,
-        error = isError,
-    })
+    local player = MRP_CLIENT.GetPlayerData()
+    MRP_CLIENT.TriggerServerCallback('inventory:server:getInventory', {{owner = player._id}}, function(inventory)
+        local items = nil
+        if inventory ~= nil then
+            items = inventory.items
+        end
+        
+        SendNUIMessage({
+            action = "update",
+            inventory = items,
+            maxweight = Config.MaxWeight,
+            slots = MaxInventorySlots,
+            error = isError,
+        })
+    end)
 end)
 
 RegisterNetEvent("inventory:client:CraftItems")
