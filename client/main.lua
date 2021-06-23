@@ -18,6 +18,8 @@ local isCrafting = false
 local isHotbar = false
 
 local showTrunkPos = false
+local craftingDoneCallback = nil
+local pickupsnowballDoneCallback = nil
 
 Citizen.CreateThread(function() 
     while MRP_CLIENT == nil do
@@ -408,6 +410,13 @@ AddEventHandler("inventory:client:UpdatePlayerInventory", function(isError)
     end)
 end)
 
+RegisterNUICallback('crafting_done', function(data, cb)
+    if craftingDoneCallback ~= nil then
+        craftingDoneCallback()
+        craftingDoneCallback = nil
+    end
+end)
+
 RegisterNetEvent("inventory:client:CraftItems")
 AddEventHandler("inventory:client:CraftItems", function(itemName, itemCosts, amount, toSlot, points)
     local ped = PlayerPedId()
@@ -415,25 +424,21 @@ AddEventHandler("inventory:client:CraftItems", function(itemName, itemCosts, amo
         action = "close",
     })
     isCrafting = true
-    QBCore.Functions.Progressbar("repair_vehicle", "Crafting..", (math.random(2000, 5000) * amount), false, true, {
-		disableMovement = true,
-		disableCarMovement = true,
-		disableMouse = false,
-		disableCombat = true,
-	}, {
-		animDict = "mini@repair",
-		anim = "fixing_a_player",
-		flags = 16,
-	}, {}, {}, function() -- Done
-		StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
+    
+    LoadAnimDict('mini@repair')
+    TaskPlayAnim(ped, 'mini@repair', 'fixing_a_player', 3.0, 3.0, -1, 16, 1, true, true, true)
+    
+    TriggerEvent('mrp:startTimer', {
+        timer = (math.random(2000, 5000) * amount),
+        timerAction = 'https://mrp_inventory/crafting_done'
+    })
+    
+    craftingDoneCallback = function()
+        StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
         TriggerServerEvent("inventory:server:CraftItems", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[itemName], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[itemName], 'add')
         isCrafting = false
-	end, function() -- Cancel
-		StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
-        QBCore.Functions.Notify("Failed!", "error")
-        isCrafting = false
-	end)
+    end
 end)
 
 RegisterNetEvent('inventory:client:CraftAttachment')
@@ -443,25 +448,28 @@ AddEventHandler('inventory:client:CraftAttachment', function(itemName, itemCosts
         action = "close",
     })
     isCrafting = true
-    QBCore.Functions.Progressbar("repair_vehicle", "Crafting..", (math.random(2000, 5000) * amount), false, true, {
-		disableMovement = true,
-		disableCarMovement = true,
-		disableMouse = false,
-		disableCombat = true,
-	}, {
-		animDict = "mini@repair",
-		anim = "fixing_a_player",
-		flags = 16,
-	}, {}, {}, function() -- Done
-		StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
+    
+    LoadAnimDict('mini@repair')
+    TaskPlayAnim(ped, 'mini@repair', 'fixing_a_player', 3.0, 3.0, -1, 16, 1, true, true, true)
+    
+    TriggerEvent('mrp:startTimer', {
+        timer = (math.random(2000, 5000) * amount),
+        timerAction = 'https://mrp_inventory/crafting_done'
+    })
+    
+    craftingDoneCallback = function()
+        StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
         TriggerServerEvent("inventory:server:CraftAttachment", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[itemName], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[itemName], 'add')
         isCrafting = false
-	end, function() -- Cancel
-		StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
-        QBCore.Functions.Notify("Failed!", "error")
-        isCrafting = false
-	end)
+    end
+end)
+
+RegisterNUICallback('pickupsnowball_done', function(data, cb)
+    if pickupsnowballDoneCallback ~= nil then
+        pickupsnowballDoneCallback()
+        pickupsnowballDoneCallback = nil
+    end
 end)
 
 RegisterNetEvent("inventory:client:PickupSnowballs")
@@ -469,19 +477,17 @@ AddEventHandler("inventory:client:PickupSnowballs", function()
     local ped = PlayerPedId()
     LoadAnimDict('anim@mp_snowball')
     TaskPlayAnim(ped, 'anim@mp_snowball', 'pickup_snowball', 3.0, 3.0, -1, 0, 1, 0, 0, 0)
-    QBCore.Functions.Progressbar("pickupsnowball", "Sneeuwballen oprapen..", 1500, false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function() -- Done
+    
+    TriggerEvent('mrp:startTimer', {
+        timer = 1500,
+        timerAction = 'https://mrp_inventory/pickupsnowball_done'
+    })
+    
+    pickupsnowballDoneCallback = function()
         ClearPedTasks(ped)
-        TriggerServerEvent('QBCore:Server:AddItem', "snowball", 1)
+        TriggerServerEvent('inventory:server:AddItem', "snowball", 1)
         TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["snowball"], "add")
-    end, function() -- Cancel
-        ClearPedTasks(ped)
-        QBCore.Functions.Notify("Canceled..", "error")
-    end)
+    end
 end)
 
 RegisterNetEvent("inventory:client:UseSnowball")

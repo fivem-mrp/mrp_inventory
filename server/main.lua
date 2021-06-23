@@ -161,6 +161,17 @@ AddEventHandler('inventory:server:CraftItems', function(itemName, itemCosts, amo
 	end
 end)
 
+RegisterServerEvent("inventory:server:AddItem")
+AddEventHandler('inventory:server:AddItem', function(itemName, amount, slot, info)
+	local src = source
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
+	local amount = tonumber(amount)
+	if itemName ~= nil then
+		AddItem(Player, itemName, amount, toSlot)
+		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+	end
+end)
+
 RegisterServerEvent('inventory:server:CraftAttachment')
 AddEventHandler('inventory:server:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
