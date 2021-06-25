@@ -248,7 +248,7 @@ AddEventHandler('inventory:client:requiredItems', function(items, bool)
         for k, v in pairs(items) do
             table.insert(itemTable, {
                 item = items[k].name,
-                label = MRPShared.Items[items[k].name]["label"],
+                label = MRPShared.Items(items[k].name)["label"],
                 image = items[k].image,
             })
         end
@@ -443,7 +443,7 @@ AddEventHandler("inventory:client:CraftItems", function(itemName, itemCosts, amo
     craftingDoneCallback = function()
         StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
         TriggerServerEvent("inventory:server:CraftItems", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[itemName], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
         isCrafting = false
     end
 end)
@@ -467,7 +467,7 @@ AddEventHandler('inventory:client:CraftAttachment', function(itemName, itemCosts
     craftingDoneCallback = function()
         StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
         TriggerServerEvent("inventory:server:CraftAttachment", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[itemName], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
         isCrafting = false
     end
 end)
@@ -493,7 +493,7 @@ AddEventHandler("inventory:client:PickupSnowballs", function()
     pickupsnowballDoneCallback = function()
         ClearPedTasks(ped)
         TriggerServerEvent('inventory:server:AddItem', "snowball", 1)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items["snowball"], "add")
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items("snowball"), "add")
     end
 end)
 
@@ -637,7 +637,7 @@ end
 
 RegisterNUICallback('GetWeaponData', function(data, cb)
     local data = {
-        WeaponData = MRPShared.Items[data.weapon],
+        WeaponData = MRPShared.Items(data.weapon),
         AttachmentData = FormatWeaponAttachments(data.ItemData)
     }
     cb(data)
@@ -727,7 +727,7 @@ AddEventHandler("inventory:client:SetCurrentStash", function(stash)
 end)
 
 RegisterNUICallback('getCombineItem', function(data, cb)
-    cb(MRPShared.Items[data.item])
+    cb(MRPShared.Items(data.item))
 end)
 
 RegisterNUICallback("CloseInventory", function(data, cb)
@@ -768,7 +768,7 @@ end)
 RegisterNUICallback("combineItem", function(data)
     Citizen.Wait(150)
     TriggerServerEvent('inventory:server:combineItem', data.reward, data.fromItem, data.toItem)
-    TriggerEvent('inventory:client:ItemBox', MRPShared.Items[data.reward], 'add')
+    TriggerEvent('inventory:client:ItemBox', MRPShared.Items(data.reward), 'add')
 end)
 
 RegisterNUICallback('combine_done', function(data)
@@ -797,7 +797,7 @@ RegisterNUICallback('combineWithAnim', function(data)
     combineDoneCallback = function()
         StopAnimTask(ped, aDict, aLib, 1.0)
         TriggerServerEvent('inventory:server:combineItem', combineData.reward, data.requiredItem, data.usedItem)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items[combineData.reward], 'add')
+        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(combineData.reward), 'add')
     end
 end)
 

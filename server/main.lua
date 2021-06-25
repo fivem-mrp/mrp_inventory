@@ -83,7 +83,7 @@ local function AddItem(ply, name, quantity, slot, info)
             }
         end
         
-        local item = MRPShared.Items[name]
+        local item = MRPShared.Items(name)
         
         if slot == nil or not slot then
             slot = findAvailableSlot(inventory)
@@ -513,7 +513,7 @@ AddEventHandler('inventory:server:UseItemSlot', function(slot)
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	GetItemBySlot(Player, slot, function(itemData)
         if itemData ~= nil then
-    		local itemInfo = MRPShared.Items[itemData.name]
+    		local itemInfo = MRPShared.Items(itemData.name)
     		if itemData.type == "weapon" then
     			if itemData.info.quality ~= nil then
     				if itemData.info.quality > 0 then
@@ -588,7 +588,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
         				--Player.PlayerData.items[toSlot] = fromItemData
         				if toItemData ~= nil then
         					--Player.PlayerData.items[fromSlot] = toItemData
-        					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+        					local itemInfo = MRPShared.Items(toItemData.name:lower())
         					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
         					if toItemData.name ~= fromItemData.name then
         						RemoveItem(OtherPlayer, itemInfo["name"], toAmount, fromSlot)
@@ -597,11 +597,11 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
         						--TriggerEvent("qb-log:server:CreateLog", "robbing", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount.. "** with player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | id: *"..OtherPlayer.PlayerData.source.."*)")
         					end
         				else
-        					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+        					local itemInfo = MRPShared.Items(fromItemData.name:lower())
                             --TODO robbing log
         					--TriggerEvent("qb-log:server:CreateLog", "robbing", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** to player: **".. GetPlayerName(OtherPlayer.PlayerData.source) .. "** (citizenid: *"..OtherPlayer.PlayerData.citizenid.."* | id: *"..OtherPlayer.PlayerData.source.."*)")
         				end
-        				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+        				local itemInfo = MRPShared.Items(fromItemData.name:lower())
         				AddItem(OtherPlayer, itemInfo["name"], fromAmount, toSlot, fromItemData.info)
                     end)
     			elseif MRPShared.SplitStr(toInventory, "-")[1] == "trunk" then
@@ -612,7 +612,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						RemoveFromTrunk(plate, fromSlot, itemInfo["name"], toAmount)
@@ -620,10 +620,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - plate: *" .. plate .. "*")
     					end
     				else
-    					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(fromItemData.name:lower())
     					--TriggerEvent("qb-log:server:CreateLog", "trunk", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - plate: *" .. plate .. "*")
     				end
-    				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    				local itemInfo = MRPShared.Items(fromItemData.name:lower())
     				AddToTrunk(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
     			elseif MRPShared.SplitStr(toInventory, "-")[1] == "glovebox" then
     				local plate = MRPShared.SplitStr(toInventory, "-")[2]
@@ -633,7 +633,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], toAmount)
@@ -641,10 +641,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     						--TriggerEvent("qb-log:server:CreateLog", "glovebox", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - plate: *" .. plate .. "*")
     					end
     				else
-    					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(fromItemData.name:lower())
     					--TriggerEvent("qb-log:server:CreateLog", "glovebox", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - plate: *" .. plate .. "*")
     				end
-    				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    				local itemInfo = MRPShared.Items(fromItemData.name:lower())
     				AddToGlovebox(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
     			elseif MRPShared.SplitStr(toInventory, "-")[1] == "stash" then
     				local stashId = MRPShared.SplitStr(toInventory, "-")[2]
@@ -654,7 +654,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						--RemoveFromStash(stashId, fromSlot, itemInfo["name"], toAmount)
@@ -663,10 +663,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     						--TriggerEvent("qb-log:server:CreateLog", "stash", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - stash: *" .. stashId .. "*")
     					end
     				else
-    					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(fromItemData.name:lower())
     					TriggerEvent("qb-log:server:CreateLog", "stash", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - stash: *" .. stashId .. "*")
     				end
-    				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    				local itemInfo = MRPShared.Items(fromItemData.name:lower())
     				AddToStash(stashId, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
     			--[[elseif MRPShared.SplitStr(toInventory, "-")[1] == "traphouse" then
     				-- Traphouse
@@ -677,7 +677,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     					Player.Functions.RemoveItem(fromItemData.name, fromAmount, fromSlot)
     					TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
     					if toItemData ~= nil then
-    						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    						local itemInfo = MRPShared.Items(toItemData.name:lower())
     						local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     						if toItemData.name ~= fromItemData.name then
     							exports['qb-traphouse']:RemoveHouseItem(traphouseId, fromSlot, itemInfo["name"], toAmount)
@@ -685,10 +685,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     							TriggerEvent("qb-log:server:CreateLog", "traphouse", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - traphouse: *" .. traphouseId .. "*")
     						end
     					else
-    						local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    						local itemInfo = MRPShared.Items(fromItemData.name:lower())
     						TriggerEvent("qb-log:server:CreateLog", "traphouse", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - traphouse: *" .. traphouseId .. "*")
     					end
-    					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(fromItemData.name:lower())
     					exports['qb-traphouse']:AddHouseItem(traphouseId, toSlot, itemInfo["name"], fromAmount, fromItemData.info, src)
     				else
     					TriggerClientEvent('QBCore:Notify', src, "You can\'t sell this item..", 'error')
@@ -703,7 +703,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     					RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
     					TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
     					if toItemData ~= nil then
-    						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    						local itemInfo = MRPShared.Items(toItemData.name:lower())
     						local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     						if toItemData.name ~= fromItemData.name then
     							AddItem(Player, toItemData.name, toAmount, fromSlot, toItemData.info)
@@ -711,10 +711,10 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     							--TriggerEvent("qb-log:server:CreateLog", "drop", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** with name: **" .. fromItemData.name .. "**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
     						end
     					else
-    						local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    						local itemInfo = MRPShared.Items(fromItemData.name:lower())
     						--TriggerEvent("qb-log:server:CreateLog", "drop", "Dropped Item", "red", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) dropped new item; name: **"..itemInfo["name"].."**, amount: **" .. fromAmount .. "** - dropid: *" .. toInventory .. "*")
     					end
-    					local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(fromItemData.name:lower())
     					AddToDrop(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
     					--[[if itemInfo["name"] == "radio" then
     						TriggerClientEvent('qb-radio:onRadioDrop', src)
@@ -734,13 +734,13 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
         GetItemBySlot(OtherPlayer, fromSlot, function(fromItemData)
     		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
     		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-    			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    			local itemInfo = MRPShared.Items(fromItemData.name:lower())
     			if toInventory == "player" or toInventory == "hotbar" then
                     GetItemBySlot(Player, toSlot, function(toItemData)
                         RemoveItem(OtherPlayer, itemInfo["name"], fromAmount, fromSlot)
         				TriggerClientEvent("inventory:client:CheckWeapon", OtherPlayer.PlayerData.source, fromItemData.name)
         				if toItemData ~= nil then
-        					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+        					local itemInfo = MRPShared.Items(toItemData.name:lower())
         					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
         					if toItemData.name ~= fromItemData.name then
         						RemoveItem(Player, toItemData.name, toAmount, toSlot)
@@ -757,18 +757,18 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				RemoveItem(OtherPlayer, itemInfo["name"], fromAmount, fromSlot)
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					--Player.PlayerData.items[fromSlot] = toItemData
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
-    						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    						local itemInfo = MRPShared.Items(toItemData.name:lower())
     						RemoveItem(OtherPlayer, itemInfo["name"], toAmount, toSlot)
     						AddItem(OtherPlayer, itemInfo["name"], toAmount, fromSlot, toItemData.info)
     					end
     				else
     					--Player.PlayerData.items[fromSlot] = nil
     				end
-    				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+    				local itemInfo = MRPShared.Items(fromItemData.name:lower())
     				AddItem(OtherPlayer, itemInfo["name"], fromAmount, toSlot, fromItemData.info)
     			end
     		else
@@ -783,12 +783,12 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local fromItemData = Trunks[plate].items[fromSlot]
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
 			if toInventory == "player" or toInventory == "hotbar" then
                 GetItemBySlot(Player, toSlot, function(toItemData)
     				RemoveFromTrunk(plate, fromSlot, itemInfo["name"], fromAmount)
     				if toItemData ~= nil then
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						RemoveItem(Player, toItemData.name, toAmount, toSlot)
@@ -807,18 +807,18 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				RemoveFromTrunk(plate, fromSlot, itemInfo["name"], fromAmount)
 				--Player.PlayerData.items[toSlot] = fromItemData
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					--Player.PlayerData.items[fromSlot] = toItemData
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
 						RemoveFromTrunk(plate, toSlot, itemInfo["name"], toAmount)
 						AddToTrunk(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
 					end
 				else
 					--Player.PlayerData.items[fromSlot] = nil
 				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
 				AddToTrunk(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
@@ -832,12 +832,12 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local fromItemData = Gloveboxes[plate].items[fromSlot]
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
 			if toInventory == "player" or toInventory == "hotbar" then
                 GetItemBySlot(Player, toSlot, function(toItemData)
                     RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], fromAmount)
     				if toItemData ~= nil then
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						RemoveItem(Player, toItemData.name, toAmount, toSlot)
@@ -856,18 +856,18 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				RemoveFromGlovebox(plate, fromSlot, itemInfo["name"], fromAmount)
 				--Player.PlayerData.items[toSlot] = fromItemData
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					--Player.PlayerData.items[fromSlot] = toItemData
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
 						RemoveFromGlovebox(plate, toSlot, itemInfo["name"], toAmount)
 						AddToGlovebox(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
 					end
 				else
 					--Player.PlayerData.items[fromSlot] = nil
 				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
 				AddToGlovebox(plate, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
@@ -881,12 +881,12 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local fromItemData = Stashes[stashId].items[fromSlot]
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
 			if toInventory == "player" or toInventory == "hotbar" then
 				GetItemBySlot(Player, toSlot, function(toItemData)
                     RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
     				if toItemData ~= nil then
-    					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+    					local itemInfo = MRPShared.Items(toItemData.name:lower())
     					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
     					if toItemData.name ~= fromItemData.name then
     						RemoveItem(Player, toItemData.name, toAmount, toSlot)
@@ -906,18 +906,18 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				RemoveFromStash(stashId, fromSlot, itemInfo["name"], fromAmount)
 				--Player.PlayerData.items[toSlot] = fromItemData
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					--Player.PlayerData.items[fromSlot] = toItemData
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
 						RemoveFromStash(stashId, toSlot, itemInfo["name"], toAmount)
 						AddToStash(stashId, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
 					end
 				else
 					--Player.PlayerData.items[fromSlot] = nil
 				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
 				AddToStash(stashId, toSlot, fromSlot, itemInfo["name"], fromAmount, fromItemData.info)
 			end
 		else
@@ -931,12 +931,12 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local fromItemData = exports['qb-traphouse']:GetInventoryData(traphouseId, fromSlot)
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
 			if toInventory == "player" or toInventory == "hotbar" then
 				local toItemData = Player.Functions.GetItemBySlot(toSlot)
 				exports['qb-traphouse']:RemoveHouseItem(traphouseId, fromSlot, itemInfo["name"], fromAmount)
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
 						Player.Functions.RemoveItem(toItemData.name, toAmount, toSlot)
@@ -953,15 +953,15 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				local toItemData = exports['qb-traphouse']:GetInventoryData(traphouseId, toSlot)
 				exports['qb-traphouse']:RemoveHouseItem(traphouseId, fromSlot, itemInfo["name"], fromAmount)
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
 						exports['qb-traphouse']:RemoveHouseItem(traphouseId, toSlot, itemInfo["name"], toAmount)
 						exports['qb-traphouse']:AddHouseItem(traphouseId, fromSlot, itemInfo["name"], toAmount, toItemData.info, src)
 					end
 				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
 				exports['qb-traphouse']:AddHouseItem(traphouseId, toSlot, itemInfo["name"], fromAmount, fromItemData.info, src)
 			end
 		else
@@ -970,7 +970,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 	elseif MRPShared.SplitStr(fromInventory, "-")[1] == "itemshop" then
 		local shopType = MRPShared.SplitStr(fromInventory, "-")[2]
 		local itemData = ShopItems[shopType].items[fromSlot]
-		local itemInfo = MRPShared.Items[itemData.name:lower()]
+		local itemInfo = MRPShared.Items(itemData.name:lower())
 		local bankBalance = Player.stats.cash
 		local price = tonumber((itemData.price*fromAmount))
 
@@ -1087,7 +1087,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 		local fromItemData = Drops[fromInventory].items[fromSlot]
 		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
 		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
-			local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
 			if toInventory == "player" or toInventory == "hotbar" then
 				GetItemBySlot(Player, toSlot, function(toItemData)
                     RemoveFromDrop(fromInventory, fromSlot, itemInfo["name"], fromAmount)
@@ -1114,11 +1114,11 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				RemoveFromDrop(fromInventory, fromSlot, itemInfo["name"], fromAmount)
 				--Player.PlayerData.items[toSlot] = fromItemData
 				if toItemData ~= nil then
-					local itemInfo = MRPShared.Items[toItemData.name:lower()]
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
 					--Player.PlayerData.items[fromSlot] = toItemData
 					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
 					if toItemData.name ~= fromItemData.name then
-						local itemInfo = MRPShared.Items[toItemData.name:lower()]
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
 						RemoveFromDrop(toInventory, toSlot, itemInfo["name"], toAmount)
 						AddToDrop(fromInventory, fromSlot, itemInfo["name"], toAmount, toItemData.info)
 						--[[if itemInfo["name"] == "radio" then
@@ -1128,7 +1128,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 				--else
 					--Player.PlayerData.items[fromSlot] = nil
 				end
-				local itemInfo = MRPShared.Items[fromItemData.name:lower()]
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
 				AddToDrop(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
 				--[[if itemInfo["name"] == "radio" then
 					TriggerClientEvent('qb-radio:onRadioDrop', src)
@@ -1197,7 +1197,7 @@ function SetupShopItems(shop, shopItems)
 	local items = {}
 	if shopItems ~= nil and next(shopItems) ~= nil then
 		for k, item in pairs(shopItems) do
-			local itemInfo = MRPShared.Items[item.name:lower()]
+			local itemInfo = MRPShared.Items(item.name:lower())
 			items[item.slot] = {
 				name = itemInfo["name"],
 				amount = tonumber(item.amount),
@@ -1232,7 +1232,7 @@ function GetStashItems(stashId)
         
         if result[1] ~= nil then
 			for k, item in pairs(result) do
-				local itemInfo = MRPShared.Items[item.name:lower()]
+				local itemInfo = MRPShared.Items(item.name:lower())
 				items[item.slot] = {
 					name = itemInfo["name"],
 					amount = tonumber(item.amount),
@@ -1278,12 +1278,12 @@ end
 
 function AddToStash(stashId, slot, otherslot, itemName, amount, info)
 	local amount = tonumber(amount)
-	local ItemData = MRPShared.Items[itemName]
+	local ItemData = MRPShared.Items(itemName)
 	if not ItemData.unique then
 		if Stashes[stashId].items[slot] ~= nil and Stashes[stashId].items[slot].name == itemName then
 			Stashes[stashId].items[slot].amount = Stashes[stashId].items[slot].amount + amount
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Stashes[stashId].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1300,7 +1300,7 @@ function AddToStash(stashId, slot, otherslot, itemName, amount, info)
 		end
 	else
 		if Stashes[stashId].items[slot] ~= nil and Stashes[stashId].items[slot].name == itemName then
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Stashes[stashId].items[otherslot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1315,7 +1315,7 @@ function AddToStash(stashId, slot, otherslot, itemName, amount, info)
 				slot = otherslot,
 			}
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Stashes[stashId].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1369,7 +1369,7 @@ function GetOwnedVehicleItems(plate)
         
         if result[1] ~= nil then
 			for k, item in pairs(result) do
-				local itemInfo = MRPShared.Items[item.name:lower()]
+				local itemInfo = MRPShared.Items(item.name:lower())
 				items[item.slot] = {
 					name = itemInfo["name"],
 					amount = tonumber(item.amount),
@@ -1425,13 +1425,13 @@ end
 
 function AddToTrunk(plate, slot, otherslot, itemName, amount, info)
 	local amount = tonumber(amount)
-	local ItemData = MRPShared.Items[itemName]
+	local ItemData = MRPShared.Items(itemName)
 
 	if not ItemData.unique then
 		if Trunks[plate].items[slot] ~= nil and Trunks[plate].items[slot].name == itemName then
 			Trunks[plate].items[slot].amount = Trunks[plate].items[slot].amount + amount
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Trunks[plate].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1448,7 +1448,7 @@ function AddToTrunk(plate, slot, otherslot, itemName, amount, info)
 		end
 	else
 		if Trunks[plate].items[slot] ~= nil and Trunks[plate].items[slot].name == itemName then
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Trunks[plate].items[otherslot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1463,7 +1463,7 @@ function AddToTrunk(plate, slot, otherslot, itemName, amount, info)
 				slot = otherslot,
 			}
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Trunks[plate].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1516,7 +1516,7 @@ function GetOwnedVehicleGloveboxItems(plate)
         
         if result[1] ~= nil then
             for k, item in pairs(result) do
-				local itemInfo = MRPShared.Items[item.name:lower()]
+				local itemInfo = MRPShared.Items(item.name:lower())
 				items[item.slot] = {
 					name = itemInfo["name"],
 					amount = tonumber(item.amount),
@@ -1574,13 +1574,13 @@ end
 
 function AddToGlovebox(plate, slot, otherslot, itemName, amount, info)
 	local amount = tonumber(amount)
-	local ItemData = MRPShared.Items[itemName]
+	local ItemData = MRPShared.Items(itemName)
 
 	if not ItemData.unique then
 		if Gloveboxes[plate].items[slot] ~= nil and Gloveboxes[plate].items[slot].name == itemName then
 			Gloveboxes[plate].items[slot].amount = Gloveboxes[plate].items[slot].amount + amount
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Gloveboxes[plate].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1597,7 +1597,7 @@ function AddToGlovebox(plate, slot, otherslot, itemName, amount, info)
 		end
 	else
 		if Gloveboxes[plate].items[slot] ~= nil and Gloveboxes[plate].items[slot].name == itemName then
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Gloveboxes[plate].items[otherslot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1612,7 +1612,7 @@ function AddToGlovebox(plate, slot, otherslot, itemName, amount, info)
 				slot = otherslot,
 			}
 		else
-			local itemInfo = MRPShared.Items[itemName:lower()]
+			local itemInfo = MRPShared.Items(itemName:lower())
 			Gloveboxes[plate].items[slot] = {
 				name = itemInfo["name"],
 				amount = amount,
@@ -1654,7 +1654,7 @@ function AddToDrop(dropId, slot, itemName, amount, info)
 	if Drops[dropId].items[slot] ~= nil and Drops[dropId].items[slot].name == itemName then
 		Drops[dropId].items[slot].amount = Drops[dropId].items[slot].amount + amount
 	else
-		local itemInfo = MRPShared.Items[itemName:lower()]
+		local itemInfo = MRPShared.Items(itemName:lower())
 		Drops[dropId].items[slot] = {
 			name = itemInfo["name"],
 			amount = amount,
@@ -1714,7 +1714,7 @@ function CreateNewDrop(source, fromSlot, toSlot, itemAmount)
         local coords = GetEntityCoords(GetPlayerPed(source))
     	RemoveItem(Player, itemData.name, itemAmount, itemData.slot)
     	TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
-    	local itemInfo = MRPShared.Items[itemData.name:lower()]
+    	local itemInfo = MRPShared.Items(itemData.name:lower())
     	local dropId = CreateDropId()
     	Drops[dropId] = {}
     	Drops[dropId].items = {}
@@ -1784,7 +1784,7 @@ end)
 RegisterCommand("giveitem", function(source, args, rawCommand)
 	local Player = MRP_SERVER.getSpawnedCharacter(tonumber(args[1]))
 	local amount = tonumber(args[3])
-	local itemData = MRPShared.Items[tostring(args[2]):lower()]
+	local itemData = MRPShared.Items(tostring(args[2]):lower())
 	if Player ~= nil then
 		if amount > 0 then
 			if itemData ~= nil then
@@ -1838,7 +1838,7 @@ RegisterCommand("randomitems", function(source, args, rawCommand)
 	local Player = MRP_SERVER.getSpawnedCharacter(source)
 	local filteredItems = {}
 	for k, v in pairs(MRPShared.Items) do
-		if MRPShared.Items[k]["type"] ~= "weapon" then
+		if MRPShared.Items(k)["type"] ~= "weapon" then
 			table.insert(filteredItems, v)
 		end
 	end
@@ -1849,7 +1849,7 @@ RegisterCommand("randomitems", function(source, args, rawCommand)
 			amount = 1
 		end
 		AddItem(Player, randitem["name"], amount)
-		TriggerClientEvent('inventory:client:ItemBox', source, MRPShared.Items[randitem["name"]], 'add')
+		TriggerClientEvent('inventory:client:ItemBox', source, MRPShared.Items(randitem["name"]), 'add')
         Citizen.Wait(500)
 	end
 end, false) --TODO unrestricted for now
