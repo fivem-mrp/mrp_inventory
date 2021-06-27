@@ -73,6 +73,8 @@ local function findAvailableSlot(inventory)
 end
 
 local function AddItem(ply, name, quantity, slot, info)
+    local p = promise.new()
+    
     MRP_SERVER.read('inventory', {
         owner = ply._id
     }, function(inventory)
@@ -94,11 +96,9 @@ local function AddItem(ply, name, quantity, slot, info)
         if inventory.items ~= nil then
             for k, v in pairs(inventory.items) do
                 itemsCount = itemsCount + 1
-                if v.name == name then
+                if v.name == name and slot and slot == v.slot then
                     v.amount = v.amount + quantity
-                    if slot then
-                        v.slot = slot
-                    end
+                    v.slot = slot
                     added = true
                     break
                 end
@@ -118,6 +118,7 @@ local function AddItem(ply, name, quantity, slot, info)
                 item.info = ""
             end
             
+            item._id = nil
             item.slot = slot
             
             table.insert(inventory.items, item)
@@ -125,14 +126,21 @@ local function AddItem(ply, name, quantity, slot, info)
         
         MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
             print('Inventory item added for ' .. ply.name .. ' ' .. ply.surname)
+            p:resolve(true)
         end)
     end)
+    
+    Citizen.Await(p)
 end
 
 local function RemoveItem(ply, name, quantity, fromSlot)
+    local p = promise.new()
+    
     MRP_SERVER.read('inventory', {
         owner = ply._id
     }, function(inventory)
+        local needsPull = false
+        local pullArray = {}
         if inventory == nil then
             inventory = {
                 owner = ply._id,
@@ -144,18 +152,43 @@ local function RemoveItem(ply, name, quantity, fromSlot)
                     if v.name == name and (fromSlot ~= nil and v.slot == fromSlot) then
                         v.amount = v.amount - quantity
                         if v.amount <= 0 then
+                            needsPull = true
+                            table.insert(pullArray, v)
                             table.remove(inventory.items, k)
                         end
                         break
                     end
                 end
+                
+                local count = 0
+                for k, v in pairs(inventory.items) do
+                    count = count + 1
+                end
+                print(count)
             end
         end
         
-        MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+        local updateObj = inventory
+        
+        if needsPull then
+            updateObj = {}
+            for k, v in pairs(pullArray) do
+                updateObj['$pull'] = {
+                    items = {
+                        name = v.name,
+                        slot = v.slot
+                    }
+                }
+            end
+        end
+        
+        MRP_SERVER.update('inventory', updateObj, {owner = ply._id}, {upsert=true}, function(res)
             print('Inventory item removed for ' .. ply.name .. ' ' .. ply.surname)
+            p:resolve(true)
         end)
     end)
+    
+    Citizen.Await(p)
 end
 
 RegisterServerEvent("inventory:server:LoadDrops")
@@ -215,7 +248,7 @@ AddEventHandler('inventory:server:RemoveItem', function(itemName, amount, slot, 
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil then
-		RemoveItem(Player, itemName, amount, toSlot)
+		RemoveItem(Player, itemName, amount, slot)
 		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
@@ -1837,8 +1870,8 @@ end, false) --TODO unrestricted for now
 RegisterCommand("randomitems", function(source, args, rawCommand)
 	local Player = MRP_SERVER.getSpawnedCharacter(source)
 	local filteredItems = {}
-	for k, v in pairs(MRPShared.Items) do
-		if MRPShared.Items(k)["type"] ~= "weapon" then
+	for k, v in pairs(MRPShared.Items()) do
+		if v["type"] ~= "weapon" then
 			table.insert(filteredItems, v)
 		end
 	end
