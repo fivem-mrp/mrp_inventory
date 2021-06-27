@@ -159,12 +159,6 @@ local function RemoveItem(ply, name, quantity, fromSlot)
                         break
                     end
                 end
-                
-                local count = 0
-                for k, v in pairs(inventory.items) do
-                    count = count + 1
-                end
-                print(count)
             end
         end
         
