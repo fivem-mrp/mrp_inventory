@@ -3,6 +3,7 @@ MRP_SERVER = nil
 TriggerEvent('mrp:getSharedObject', function(obj) MRP_SERVER = obj end)
 
 Drops = {}
+Containers = {}
 Trunks = {}
 Gloveboxes = {}
 Stashes = {}
@@ -471,7 +472,23 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						--end
 						Citizen.Wait(250)
 					end
-				else
+                elseif name == "container" then
+                    if Containers[id.id] == nil then
+                        Containers[id.id] = {
+                            isOpen = false,
+                            items = {}
+                        }
+                    end
+                    if Containers[id.id] ~= nil and not Containers[id.id].isOpen then
+                        secondInv.name = id.id
+                        secondInv.label = tostring(id.id)
+                        secondInv.maxweight = 500000
+                        secondInv.inventory = Containers[id.id].items
+                        secondInv.slots = id.slots
+                        Containers[id.id].isOpen = src
+                        Containers[id.id].label = secondInv.label
+                    end
+                else
 					if Drops[id] ~= nil and not Drops[id].isOpen then
 						secondInv.name = id
 						secondInv.label = "Ground-"..tostring(id)
@@ -523,7 +540,15 @@ AddEventHandler('inventory:server:SaveInventory', function(type, id)
 				TriggerClientEvent("inventory:client:RemoveDropItem", -1, id)
 			end
 		end
-	end
+    elseif type == "container" then
+        if Containers[id.id] ~= nil then
+            Containers[id.id].isOpen = false
+        if Containers[id.id].items == nil or next(Containers[id.id].items) == nil then
+            Containers[id.id] = nil
+            TriggerClientEvent("inventory:client:RemoveContainerItem", -1, id)
+        end
+    end
+end
 end)
 
 RegisterServerEvent("inventory:server:getInventory")
@@ -606,6 +631,22 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
         				end
         				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
                     end)
+                elseif Containers[toInventory] ~= nil then
+                    local toItemData = Containers[toInventory].items[toSlot]
+                    RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
+                    TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+                    if toItemData ~= nil then
+                        local itemInfo = MRPShared.Items(toItemData.name:lower())
+                        local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+                        if toItemData.name ~= fromItemData.name then
+                            AddItem(Player, toItemData.name, toAmount, fromSlot, toItemData.info)
+                            RemoveFromContainer(toInventory, fromSlot, itemInfo["name"], toAmount)
+                        end
+                    else
+                        local itemInfo = MRPShared.Items(fromItemData.name:lower())
+                    end
+                    local itemInfo = MRPShared.Items(fromItemData.name:lower())
+                    AddToContainer(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
     			elseif MRPShared.SplitStr(toInventory, "-")[1] == "otherplayer" then
     				local playerId = tonumber(MRPShared.SplitStr(toInventory, "-")[2])
     				local OtherPlayer = MRP_SERVER.getSpawnedCharacter(playerId)
@@ -1106,6 +1147,45 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
             TriggerClientEvent('chat:addMessage', src, {
                 template = '<div class="chat-message nonemergency">{0}</div>',
                 args = {"You don't have the right items.."}
+            })
+		end
+    elseif Containers[fromInventory] ~= nil then
+        local fromItemData = Containers[fromInventory].items[fromSlot]
+		local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
+        if fromItemData ~= nil and fromItemData.amount >= fromAmount then
+			local itemInfo = MRPShared.Items(fromItemData.name:lower())
+			if toInventory == "player" or toInventory == "hotbar" then
+				GetItemBySlot(Player, toSlot, function(toItemData)
+                    RemoveFromContainer(fromInventory, fromSlot, itemInfo["name"], fromAmount)
+    				if toItemData ~= nil then
+    					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+    					if toItemData.name ~= fromItemData.name then
+    						RemoveItem(Player, toItemData.name, toAmount, toSlot)
+    						AddToContainer(fromInventory, toSlot, itemInfo["name"], toAmount, toItemData.info)
+    					end
+    				end
+    				AddItem(Player, fromItemData.name, fromAmount, toSlot, fromItemData.info)
+                end)
+			else
+				toInventory = tonumber(toInventory)
+				local toItemData = Containers[toInventory].items[toSlot]
+				RemoveFromContainer(fromInventory, fromSlot, itemInfo["name"], fromAmount)
+				if toItemData ~= nil then
+					local itemInfo = MRPShared.Items(toItemData.name:lower())
+					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
+					if toItemData.name ~= fromItemData.name then
+						local itemInfo = MRPShared.Items(toItemData.name:lower())
+						RemoveFromDrop(toInventory, toSlot, itemInfo["name"], toAmount)
+						AddToDrop(fromInventory, fromSlot, itemInfo["name"], toAmount, toItemData.info)
+					end
+				end
+				local itemInfo = MRPShared.Items(fromItemData.name:lower())
+				AddToContainer(toInventory, toSlot, itemInfo["name"], fromAmount, fromItemData.info)
+			end
+		else
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Item doesn't exist??"}
             })
 		end
 	else
@@ -1699,6 +1779,29 @@ function AddToDrop(dropId, slot, itemName, amount, info)
 	end
 end
 
+function AddToContainer(containerId, slot, itemName, amount, info)
+	local amount = tonumber(amount)
+	if Containers[containerId].items[slot] ~= nil and Containers[containerId].items[slot].name == itemName then
+		Containers[containerId].items[slot].amount = Containers[containerId].items[slot].amount + amount
+	else
+		local itemInfo = MRPShared.Items(itemName:lower())
+		Containers[containerId].items[slot] = {
+			name = itemInfo["name"],
+			amount = amount,
+			info = info ~= nil and info or "",
+			label = itemInfo["label"],
+			description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
+			weight = itemInfo["weight"], 
+			type = itemInfo["type"], 
+			unique = itemInfo["unique"], 
+			useable = itemInfo["useable"], 
+			image = itemInfo["image"],
+			slot = slot,
+			id = containerId,
+		}
+	end
+end
+
 function RemoveFromDrop(dropId, slot, itemName, amount)
 	if Drops[dropId].items[slot] ~= nil and Drops[dropId].items[slot].name == itemName then
 		if Drops[dropId].items[slot].amount > amount then
@@ -1715,6 +1818,24 @@ function RemoveFromDrop(dropId, slot, itemName, amount)
 		if Drops[dropId].items == nil then
 			Drops[dropId].items[slot] = nil
 			--TriggerClientEvent("inventory:client:RemoveDropItem", -1, dropId)
+		end
+	end
+end
+
+function RemoveFromContainer(containerId, slot, itemName, amount)
+	if Containers[containerId].items[slot] ~= nil and Containers[containerId].items[slot].name == itemName then
+		if Containers[containerId].items[slot].amount > amount then
+			Containers[containerId].items[slot].amount = Containers[containerId].items[slot].amount - amount
+		else
+			Containers[containerId].items[slot] = nil
+			if next(Containers[containerId].items) == nil then
+				Containers[containerId].items = {}
+			end
+		end
+	else
+		Containers[containerId].items[slot] = nil
+		if Containers[containerId].items == nil then
+			Containers[containerId].items[slot] = nil
 		end
 	end
 end

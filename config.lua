@@ -363,3 +363,15 @@ Config.MaximumAmmoValues = {
     ["shotgun"] = 200,
     ["rifle"] = 250,
 }
+
+Config.worldContainers = {
+    [684586828] = { name = 'prop_cs_dumpster_01a', slots = 41 },
+    [577432224] = { name = 'p_dumpster_t', slots = 41 },
+    [-206690185] = { name = 'prop_dumpster_3a', slots = 41 },
+    [682791951] = { name = 'prop_dumpster_4b', slots = 41 },
+    [1511880420] = { name = 'prop_dumpster_4a', slots = 41 },
+    [-1587184881] = { name = 'prop_snow_dumpster_01', slots = 41 },
+    [666561306] = { name = 'prop_dumpster_02a', slots = 41 },
+    [-58485588] = { name = 'prop_dumpster_02b', slots = 41 },
+    [218085040] = { name = 'prop_dumpster_01a', slots = 41 },
+}

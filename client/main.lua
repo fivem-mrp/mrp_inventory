@@ -11,9 +11,12 @@ local Drops = {}
 local CurrentDrop = 0
 local DropsNear = {}
 
+local Containers = {}
+
 local CurrentVehicle = nil
 local CurrentGlovebox = nil
 local CurrentStash = nil
+local CurrentContainer = nil
 local isCrafting = false
 local isHotbar = false
 
@@ -113,6 +116,28 @@ Citizen.CreateThread(function()
     end
 end)
 
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(7)
+        if not inInventory then
+            local containers = exports["mrp_core"].EnumerateObjects()
+            if containers ~= 0 and containers ~= nil then
+                local ped = PlayerPedId()
+                local pos = GetEntityCoords(ped)
+                if not IsPedInAnyVehicle(ped) then
+                    for k, container in pairs(containers) do
+                        local hash = GetEntityModel(container)
+                        local contpos = GetEntityCoords(container)
+                        if Config.worldContainers[hash] ~= nil and #(pos - contpos) < 5.0 then
+                            CurrentContainer = Config.worldContainers[hash]
+                            CurrentContainer['id'] = CurrentContainer.name .. #contpos
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
 
 Citizen.CreateThread(function()
     while true do
@@ -203,6 +228,8 @@ Citizen.CreateThread(function()
                     OpenTrunk()
                 elseif CurrentGlovebox ~= nil then
                     TriggerServerEvent("inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
+                elseif CurrentContainer ~= nil then
+                    TriggerServerEvent("inventory:server:OpenInventory", "container", CurrentContainer)
                 elseif CurrentDrop ~= 0 then
                     TriggerServerEvent("inventory:server:OpenInventory", "drop", CurrentDrop)
                 else
@@ -706,6 +733,11 @@ AddEventHandler("inventory:client:RemoveDropItem", function(dropId)
     Drops[dropId] = nil
 end)
 
+RegisterNetEvent("inventory:client:RemoveContainerItem")
+AddEventHandler("inventory:client:RemoveContainerItem", function(container)
+    Containers[container.id] = nil
+end)
+
 RegisterNetEvent("inventory:client:DropItemAnim")
 AddEventHandler("inventory:client:DropItemAnim", function()
     local ped = PlayerPedId()
@@ -736,6 +768,7 @@ RegisterNUICallback("CloseInventory", function(data, cb)
         CurrentVehicle = nil
         CurrentGlovebox = nil
         CurrentStash = nil
+        CurrentContainer = nil
         SetNuiFocus(false, false)
         --TriggerScreenblurFadeOut(0)  --Screen Blur / Remove All TriggerScreenblurFadeOut's and TriggerScreenblurFadein's
         inInventory = false
@@ -752,6 +785,9 @@ RegisterNUICallback("CloseInventory", function(data, cb)
     elseif CurrentStash ~= nil then
         TriggerServerEvent("inventory:server:SaveInventory", "stash", CurrentStash)
         CurrentStash = nil
+    elseif CurrentContainer ~= nil then
+        TriggerServerEvent("inventory:server:SaveInventory", "container", CurrentContainer)
+        CurrentContainer = nil
     else
         TriggerServerEvent("inventory:server:SaveInventory", "drop", CurrentDrop)
         CurrentDrop = 0
