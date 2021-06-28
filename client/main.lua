@@ -327,11 +327,6 @@ Citizen.CreateThread(function()
     end
 end)
 
---RegisterNetEvent("QBCore:Client:OnPlayerLoaded")
---AddEventHandler("QBCore:Client:OnPlayerLoaded", function()
-    --TriggerServerEvent("inventory:server:LoadDrops")
---end)
-
 RegisterNetEvent('inventory:server:RobPlayer')
 AddEventHandler('inventory:server:RobPlayer', function(TargetId)
     SendNUIMessage({
@@ -534,12 +529,10 @@ end)
 
 RegisterNetEvent("inventory:client:UseWeapon")
 AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
-    --TODO need to figure out weapons
     local ped = PlayerPedId()
     local weaponName = tostring(weaponData.name)
     if currentWeapon == weaponName then
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
-        --RemoveAllPedWeapons(ped, true)
         TriggerEvent('weapons:client:SetCurrentWeapon', nil, shootbool)
         currentWeapon = nil
     elseif weaponName == "weapon_stickybomb" then
@@ -704,7 +697,6 @@ end)
 
 RegisterNetEvent("inventory:client:CheckWeapon")
 AddEventHandler("inventory:client:CheckWeapon", function(weaponName)
-    --TODO need to figure out weapons
     local ped = PlayerPedId()
     if currentWeapon == weaponName then 
         TriggerEvent('weapons:ResetHolster')

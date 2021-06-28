@@ -578,8 +578,14 @@ AddEventHandler('inventory:server:UseItemSlot', function(slot)
     			end
     			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
     		elseif itemData.useable then
-    			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
-    			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+                RemoveItem(Player, itemData.name, 1, itemData.slot)
+                
+                MRP_SERVER.read('item', {
+                    name = itemData.name
+                }, function(res)
+                    TriggerClientEvent("mrp:client:useables:use", src, res)
+                    TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+                end)
     		end
     	end
     end)
@@ -590,10 +596,16 @@ AddEventHandler('inventory:server:UseItem', function(inventory, item)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	if inventory == "player" or inventory == "hotbar" then
+        if item.usable then
+            RemoveItem(Player, item.name, 1, item.slot)
+        end
         GetItemBySlot(Player, item.slot, function(itemData)
             if itemData ~= nil then
-                --TODO use items in MRP
-    			TriggerClientEvent("QBCore:Client:UseItem", src, itemData)
+                MRP_SERVER.read('item', {
+                    name = itemData.name
+                }, function(res)
+                    TriggerClientEvent("mrp:client:useables:use", src, res)
+                end)
     		end
         end)
 	end
