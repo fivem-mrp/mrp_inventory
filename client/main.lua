@@ -397,7 +397,7 @@ end)
 function GetClosestPlayer()
     local ped = PlayerPedId()
     local playerCoords = GetEntityCoords(ped)
-    local closestDistance = 99999
+    local closestDistance = -1
     local closestPlayer = -1
     for key, value in pairs(exports.mrp_core:EnumeratePeds()) do
         local playerHandle = NetworkGetPlayerIndexFromPed(value)
@@ -405,9 +405,9 @@ function GetClosestPlayer()
             local targetCoords = GetEntityCoords(value)
             
             local dist = Vdist(playerCoords.x, playerCoords.y, playerCoords.z, targetCoords.x, targetCoords.y, targetCoords.z)
-            if dist < closestPlayer then
+            if closestDistance == -1 or dist < closestDistance then
                 closestPlayer = value
-                closestPlayer = dist
+                closestDistance = dist
             end
         end
 	end
