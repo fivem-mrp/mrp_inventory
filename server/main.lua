@@ -578,17 +578,28 @@ AddEventHandler('inventory:server:UseItemSlot', function(slot)
     			end
     			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
     		elseif itemData.useable then
-                RemoveItem(Player, itemData.name, 1, itemData.slot)
+                --RemoveItem(Player, itemData.name, 1, itemData.slot)
                 
                 MRP_SERVER.read('item', {
                     name = itemData.name
                 }, function(res)
-                    TriggerClientEvent("mrp:client:useables:use", src, res)
-                    TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+                    res.slot = itemData.slot
+                    TriggerClientEvent("mrp:client:useables:use", src, res, "mrp:server:item:used")
                 end)
     		end
     	end
     end)
+end)
+
+RegisterServerEvent("mrp:server:item:used")
+AddEventHandler('mrp:server:item:used', function(source, item)
+    print("item used " .. item.name)
+    local Player = MRP_SERVER.getSpawnedCharacter(source)
+    if item.useable then
+        RemoveItem(Player, item.name, 1, item.slot)
+        local itemInfo = MRPShared.Items(item.name)
+        TriggerClientEvent('inventory:client:ItemBox', source, itemInfo, "use")
+    end
 end)
 
 RegisterServerEvent("inventory:server:UseItem")
@@ -597,14 +608,15 @@ AddEventHandler('inventory:server:UseItem', function(inventory, item)
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	if inventory == "player" or inventory == "hotbar" then
         if item.usable then
-            RemoveItem(Player, item.name, 1, item.slot)
+            --RemoveItem(Player, item.name, 1, item.slot)
         end
         GetItemBySlot(Player, item.slot, function(itemData)
             if itemData ~= nil then
                 MRP_SERVER.read('item', {
                     name = itemData.name
                 }, function(res)
-                    TriggerClientEvent("mrp:client:useables:use", src, res)
+                    res.slot = item.slot
+                    TriggerClientEvent("mrp:client:useables:use", src, res, "mrp:server:item:used")
                 end)
     		end
         end)
