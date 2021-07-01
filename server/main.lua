@@ -594,6 +594,9 @@ end)
 RegisterServerEvent("mrp:server:item:used")
 AddEventHandler('mrp:server:item:used', function(source, item)
     print("item used " .. item.name)
+    if item.persistent then
+        return;
+    end
     local Player = MRP_SERVER.getSpawnedCharacter(source)
     if item.useable then
         RemoveItem(Player, item.name, 1, item.slot)
