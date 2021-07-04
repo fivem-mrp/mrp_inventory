@@ -39,20 +39,20 @@ AddEventHandler('mrp:spawn', function(characterToUse, spawnIdx)
     end
 end)
 
-RegisterNetEvent('inventory:client:CheckOpenState')
-AddEventHandler('inventory:client:CheckOpenState', function(type, id, label)
+RegisterNetEvent('mrp:inventory:client:CheckOpenState')
+AddEventHandler('mrp:inventory:client:CheckOpenState', function(type, id, label)
     local name = MRPShared.SplitStr(label, "-")[2]
     if type == "stash" then
         if name ~= CurrentStash or CurrentStash == nil then
-            TriggerServerEvent('inventory:server:SetIsOpenState', false, type, id)
+            TriggerServerEvent('mrp:inventory:server:SetIsOpenState', false, type, id)
         end
     elseif type == "trunk" then
         if name ~= CurrentVehicle or CurrentVehicle == nil then
-            TriggerServerEvent('inventory:server:SetIsOpenState', false, type, id)
+            TriggerServerEvent('mrp:inventory:server:SetIsOpenState', false, type, id)
         end
     elseif type == "glovebox" then
         if name ~= CurrentGlovebox or CurrentGlovebox == nil then
-            TriggerServerEvent('inventory:server:SetIsOpenState', false, type, id)
+            TriggerServerEvent('mrp:inventory:server:SetIsOpenState', false, type, id)
         end
     end
 end)
@@ -224,16 +224,16 @@ Citizen.CreateThread(function()
                         maxweight = maxweight,
                         slots = slots,
                     }
-                    TriggerServerEvent("inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
                     OpenTrunk()
                 elseif CurrentGlovebox ~= nil then
-                    TriggerServerEvent("inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
                 elseif CurrentContainer ~= nil then
-                    TriggerServerEvent("inventory:server:OpenInventory", "container", CurrentContainer)
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "container", CurrentContainer)
                 elseif CurrentDrop ~= 0 then
-                    TriggerServerEvent("inventory:server:OpenInventory", "drop", CurrentDrop)
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "drop", CurrentDrop)
                 else
-                    TriggerServerEvent("inventory:server:OpenInventory")
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory")
                 end
             end
         end
@@ -255,14 +255,14 @@ for i=1, 6 do
             if i == 6 then 
                 i = MaxInventorySlots
             end
-            TriggerServerEvent("inventory:server:UseItemSlot", i)
+            TriggerServerEvent("mrp:inventory:server:UseItemSlot", i)
         end
     end)
     RegisterKeyMapping('slot' .. i, 'Uses the item in slot ' .. i, 'keyboard', i)
 end
 
-RegisterNetEvent('inventory:client:ItemBox')
-AddEventHandler('inventory:client:ItemBox', function(itemData, type)
+RegisterNetEvent('mrp:inventory:client:ItemBox')
+AddEventHandler('mrp:inventory:client:ItemBox', function(itemData, type)
     SendNUIMessage({
         action = "itemBox",
         item = itemData,
@@ -270,8 +270,8 @@ AddEventHandler('inventory:client:ItemBox', function(itemData, type)
     })
 end)
 
-RegisterNetEvent('inventory:client:requiredItems')
-AddEventHandler('inventory:client:requiredItems', function(items, bool)
+RegisterNetEvent('mrp:inventory:client:requiredItems')
+AddEventHandler('mrp:inventory:client:requiredItems', function(items, bool)
     local itemTable = {}
     if bool then
         for k, v in pairs(items) do
@@ -329,8 +329,8 @@ Citizen.CreateThread(function()
     end
 end)
 
-RegisterNetEvent('inventory:server:RobPlayer')
-AddEventHandler('inventory:server:RobPlayer', function(TargetId)
+RegisterNetEvent('mrp:inventory:server:RobPlayer')
+AddEventHandler('mrp:inventory:server:RobPlayer', function(TargetId)
     SendNUIMessage({
         action = "RobMoney",
         TargetId = TargetId,
@@ -348,8 +348,8 @@ RegisterNUICallback('Notify', function(data, cb)
     })
 end)
 
-RegisterNetEvent("inventory:client:OpenInventory")
-AddEventHandler("inventory:client:OpenInventory", function(PlayerAmmo, inventory, other)
+RegisterNetEvent("mrp:inventory:client:OpenInventory")
+AddEventHandler("mrp:inventory:client:OpenInventory", function(PlayerAmmo, inventory, other)
     if not IsEntityDead(PlayerPedId()) then
         ToggleHotbar(false)
         SetNuiFocus(true, true)
@@ -380,7 +380,7 @@ RegisterNUICallback("GiveItem", function(data, cb)
         local dist = GetDistanceBetweenCoords(pos.x, pos.y, pos.z, plyCoords.x, plyCoords.y, plyCoords.z, true)
         if dist < 2.5 then
             SetCurrentPedWeapon(PlayerPedId(),'WEAPON_UNARMED',true)
-            TriggerServerEvent("inventory:server:GiveItem", playerId, data.inventory, data.item, data.amount)
+            TriggerServerEvent("mrp:inventory:server:GiveItem", playerId, data.inventory, data.item, data.amount)
             print(data.amount)
         else
             TriggerEvent('chat:addMessage', {
@@ -417,15 +417,15 @@ function GetClosestPlayer()
 	return closestPlayer, closestDistance
 end
 
-RegisterNetEvent("inventory:client:ShowTrunkPos")
-AddEventHandler("inventory:client:ShowTrunkPos", function()
+RegisterNetEvent("mrp:inventory:client:ShowTrunkPos")
+AddEventHandler("mrp:inventory:client:ShowTrunkPos", function()
     showTrunkPos = true
 end)
 
-RegisterNetEvent("inventory:client:UpdatePlayerInventory")
-AddEventHandler("inventory:client:UpdatePlayerInventory", function(isError)
+RegisterNetEvent("mrp:inventory:client:UpdatePlayerInventory")
+AddEventHandler("mrp:inventory:client:UpdatePlayerInventory", function(isError)
     local player = MRP_CLIENT.GetPlayerData()
-    MRP_CLIENT.TriggerServerCallback('inventory:server:getInventory', {{owner = player._id}}, function(inventory)
+    MRP_CLIENT.TriggerServerCallback('mrp:inventory:server:getInventory', {{owner = player._id}}, function(inventory)
         local items = nil
         if inventory ~= nil then
             items = inventory.items
@@ -448,8 +448,8 @@ RegisterNUICallback('crafting_done', function(data, cb)
     end
 end)
 
-RegisterNetEvent("inventory:client:CraftItems")
-AddEventHandler("inventory:client:CraftItems", function(itemName, itemCosts, amount, toSlot, points)
+RegisterNetEvent("mrp:inventory:client:CraftItems")
+AddEventHandler("mrp:inventory:client:CraftItems", function(itemName, itemCosts, amount, toSlot, points)
     local ped = PlayerPedId()
     SendNUIMessage({
         action = "close",
@@ -466,14 +466,14 @@ AddEventHandler("inventory:client:CraftItems", function(itemName, itemCosts, amo
     
     craftingDoneCallback = function()
         StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
-        TriggerServerEvent("inventory:server:CraftItems", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
+        TriggerServerEvent("mrp:inventory:server:CraftItems", itemName, itemCosts, amount, toSlot, points)
+        TriggerEvent('mrp:inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
         isCrafting = false
     end
 end)
 
-RegisterNetEvent('inventory:client:CraftAttachment')
-AddEventHandler('inventory:client:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
+RegisterNetEvent('mrp:inventory:client:CraftAttachment')
+AddEventHandler('mrp:inventory:client:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
     local ped = PlayerPedId()
     SendNUIMessage({
         action = "close",
@@ -490,8 +490,8 @@ AddEventHandler('inventory:client:CraftAttachment', function(itemName, itemCosts
     
     craftingDoneCallback = function()
         StopAnimTask(ped, "mini@repair", "fixing_a_player", 1.0)
-        TriggerServerEvent("inventory:server:CraftAttachment", itemName, itemCosts, amount, toSlot, points)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
+        TriggerServerEvent("mrp:inventory:server:CraftAttachment", itemName, itemCosts, amount, toSlot, points)
+        TriggerEvent('mrp:inventory:client:ItemBox', MRPShared.Items(itemName), 'add')
         isCrafting = false
     end
 end)
@@ -503,8 +503,8 @@ RegisterNUICallback('pickupsnowball_done', function(data, cb)
     end
 end)
 
-RegisterNetEvent("inventory:client:PickupSnowballs")
-AddEventHandler("inventory:client:PickupSnowballs", function()
+RegisterNetEvent("mrp:inventory:client:PickupSnowballs")
+AddEventHandler("mrp:inventory:client:PickupSnowballs", function()
     local ped = PlayerPedId()
     LoadAnimDict('anim@mp_snowball')
     TaskPlayAnim(ped, 'anim@mp_snowball', 'pickup_snowball', 3.0, 3.0, -1, 0, 1, 0, 0, 0)
@@ -516,21 +516,21 @@ AddEventHandler("inventory:client:PickupSnowballs", function()
     
     pickupsnowballDoneCallback = function()
         ClearPedTasks(ped)
-        TriggerServerEvent('inventory:server:AddItem', "snowball", 1)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items("snowball"), "add")
+        TriggerServerEvent('mrp:inventory:server:AddItem', "snowball", 1)
+        TriggerEvent('mrp:inventory:client:ItemBox', MRPShared.Items("snowball"), "add")
     end
 end)
 
-RegisterNetEvent("inventory:client:UseSnowball")
-AddEventHandler("inventory:client:UseSnowball", function(amount)
+RegisterNetEvent("mrp:inventory:client:UseSnowball")
+AddEventHandler("mrp:inventory:client:UseSnowball", function(amount)
     local ped = PlayerPedId()
     GiveWeaponToPed(ped, GetHashKey("weapon_snowball"), amount, false, false)
     SetPedAmmo(ped, GetHashKey("weapon_snowball"), amount)
     SetCurrentPedWeapon(ped, GetHashKey("weapon_snowball"), true)
 end)
 
-RegisterNetEvent("inventory:client:UseWeapon")
-AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
+RegisterNetEvent("mrp:inventory:client:UseWeapon")
+AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool)
     local ped = PlayerPedId()
     local weaponName = tostring(weaponData.name)
     if currentWeapon == weaponName then
@@ -541,14 +541,14 @@ AddEventHandler("inventory:client:UseWeapon", function(weaponData, shootbool)
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), 1)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
-        TriggerServerEvent('inventory:server:RemoveItem', weaponName, 1)
+        TriggerServerEvent('mrp:inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
         currentWeapon = weaponName
     elseif weaponName == "weapon_snowball" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), 10)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
-        TriggerServerEvent('inventory:server:RemoveItem', weaponName, 1)
+        TriggerServerEvent('mrp:inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
         currentWeapon = weaponName
     else
@@ -697,8 +697,8 @@ RegisterNUICallback('RemoveAttachment', function(data, cb)
     end, data.AttachmentData, data.WeaponData)
 end)
 
-RegisterNetEvent("inventory:client:CheckWeapon")
-AddEventHandler("inventory:client:CheckWeapon", function(weaponName)
+RegisterNetEvent("mrp:inventory:client:CheckWeapon")
+AddEventHandler("mrp:inventory:client:CheckWeapon", function(weaponName)
     local ped = PlayerPedId()
     if currentWeapon == weaponName then 
         TriggerEvent('weapons:ResetHolster')
@@ -708,8 +708,8 @@ AddEventHandler("inventory:client:CheckWeapon", function(weaponName)
     end
 end)
 
-RegisterNetEvent("inventory:client:AddDropItem")
-AddEventHandler("inventory:client:AddDropItem", function(dropId, player, coords)
+RegisterNetEvent("mrp:inventory:client:AddDropItem")
+AddEventHandler("mrp:inventory:client:AddDropItem", function(dropId, player, coords)
     local forward = GetEntityForwardVector(GetPlayerPed(GetPlayerFromServerId(player)))
 	local x, y, z = table.unpack(coords + forward * 0.5)
     Drops[dropId] = {
@@ -722,18 +722,18 @@ AddEventHandler("inventory:client:AddDropItem", function(dropId, player, coords)
     }
 end)
 
-RegisterNetEvent("inventory:client:RemoveDropItem")
-AddEventHandler("inventory:client:RemoveDropItem", function(dropId)
+RegisterNetEvent("mrp:inventory:client:RemoveDropItem")
+AddEventHandler("mrp:inventory:client:RemoveDropItem", function(dropId)
     Drops[dropId] = nil
 end)
 
-RegisterNetEvent("inventory:client:RemoveContainerItem")
-AddEventHandler("inventory:client:RemoveContainerItem", function(container)
+RegisterNetEvent("mrp:inventory:client:RemoveContainerItem")
+AddEventHandler("mrp:inventory:client:RemoveContainerItem", function(container)
     Containers[container.id] = nil
 end)
 
-RegisterNetEvent("inventory:client:DropItemAnim")
-AddEventHandler("inventory:client:DropItemAnim", function()
+RegisterNetEvent("mrp:inventory:client:DropItemAnim")
+AddEventHandler("mrp:inventory:client:DropItemAnim", function()
     local ped = PlayerPedId()
     SendNUIMessage({
         action = "close",
@@ -747,8 +747,8 @@ AddEventHandler("inventory:client:DropItemAnim", function()
     ClearPedTasks(ped)
 end)
 
-RegisterNetEvent("inventory:client:SetCurrentStash")
-AddEventHandler("inventory:client:SetCurrentStash", function(stash)
+RegisterNetEvent("mrp:inventory:client:SetCurrentStash")
+AddEventHandler("mrp:inventory:client:SetCurrentStash", function(stash)
     CurrentStash = stash
 end)
 
@@ -771,19 +771,19 @@ RegisterNUICallback("CloseInventory", function(data, cb)
     end
     if CurrentVehicle ~= nil then
         CloseTrunk()
-        TriggerServerEvent("inventory:server:SaveInventory", "trunk", CurrentVehicle)
+        TriggerServerEvent("mrp:inventory:server:SaveInventory", "trunk", CurrentVehicle)
         CurrentVehicle = nil
     elseif CurrentGlovebox ~= nil then
-        TriggerServerEvent("inventory:server:SaveInventory", "glovebox", CurrentGlovebox)
+        TriggerServerEvent("mrp:inventory:server:SaveInventory", "glovebox", CurrentGlovebox)
         CurrentGlovebox = nil
     elseif CurrentStash ~= nil then
-        TriggerServerEvent("inventory:server:SaveInventory", "stash", CurrentStash)
+        TriggerServerEvent("mrp:inventory:server:SaveInventory", "stash", CurrentStash)
         CurrentStash = nil
     elseif CurrentContainer ~= nil then
-        TriggerServerEvent("inventory:server:SaveInventory", "container", CurrentContainer)
+        TriggerServerEvent("mrp:inventory:server:SaveInventory", "container", CurrentContainer)
         CurrentContainer = nil
     else
-        TriggerServerEvent("inventory:server:SaveInventory", "drop", CurrentDrop)
+        TriggerServerEvent("mrp:inventory:server:SaveInventory", "drop", CurrentDrop)
         CurrentDrop = 0
     end
     --TriggerEvent('randPickupAnim')
@@ -792,13 +792,13 @@ RegisterNUICallback("CloseInventory", function(data, cb)
     inInventory = false
 end)
 RegisterNUICallback("UseItem", function(data, cb)
-    TriggerServerEvent("inventory:server:UseItem", data.inventory, data.item)
+    TriggerServerEvent("mrp:inventory:server:UseItem", data.inventory, data.item)
 end)
 
 RegisterNUICallback("combineItem", function(data)
     Citizen.Wait(150)
-    TriggerServerEvent('inventory:server:combineItem', data.reward, data.fromItem, data.toItem)
-    TriggerEvent('inventory:client:ItemBox', MRPShared.Items(data.reward), 'add')
+    TriggerServerEvent('mrp:inventory:server:combineItem', data.reward, data.fromItem, data.toItem)
+    TriggerEvent('mrp:inventory:client:ItemBox', MRPShared.Items(data.reward), 'add')
 end)
 
 RegisterNUICallback('combine_done', function(data)
@@ -826,13 +826,13 @@ RegisterNUICallback('combineWithAnim', function(data)
     
     combineDoneCallback = function()
         StopAnimTask(ped, aDict, aLib, 1.0)
-        TriggerServerEvent('inventory:server:combineItem', combineData.reward, data.requiredItem, data.usedItem)
-        TriggerEvent('inventory:client:ItemBox', MRPShared.Items(combineData.reward), 'add')
+        TriggerServerEvent('mrp:inventory:server:combineItem', combineData.reward, data.requiredItem, data.usedItem)
+        TriggerEvent('mrp:inventory:client:ItemBox', MRPShared.Items(combineData.reward), 'add')
     end
 end)
 
 RegisterNUICallback("SetInventoryData", function(data, cb)
-    TriggerServerEvent("inventory:server:SetInventoryData", data.fromInventory, data.toInventory, data.fromSlot, data.toSlot, data.fromAmount, data.toAmount)
+    TriggerServerEvent("mrp:inventory:server:SetInventoryData", data.fromInventory, data.toInventory, data.fromSlot, data.toSlot, data.fromAmount, data.toAmount)
 end)
 
 RegisterNUICallback("PlayDropSound", function(data, cb)
@@ -895,7 +895,7 @@ end
 
 function ToggleHotbar(toggle)
     local player = MRP_CLIENT.GetPlayerData()
-    MRP_CLIENT.TriggerServerCallback('inventory:server:getInventory', {{owner = player._id}}, function(inventory)
+    MRP_CLIENT.TriggerServerCallback('mrp:inventory:server:getInventory', {{owner = player._id}}, function(inventory)
         local items = {}
         if inventory ~= nil then
             items = inventory.items

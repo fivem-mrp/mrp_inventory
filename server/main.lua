@@ -186,23 +186,23 @@ local function RemoveItem(ply, name, quantity, fromSlot)
     Citizen.Await(p)
 end
 
-RegisterServerEvent("inventory:server:LoadDrops")
-AddEventHandler('inventory:server:LoadDrops', function()
+RegisterServerEvent("mrp:inventory:server:LoadDrops")
+AddEventHandler('mrp:inventory:server:LoadDrops', function()
 	local src = source
 	if next(Drops) ~= nil then
-		TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source)
-		TriggerClientEvent("inventory:client:AddDropItem", src, Drops)
+		TriggerClientEvent("mrp:inventory:client:AddDropItem", -1, dropId, source)
+		TriggerClientEvent("mrp:inventory:client:AddDropItem", src, Drops)
 	end
 end)
 
-RegisterServerEvent("inventory:server:addTrunkItems")
-AddEventHandler('inventory:server:addTrunkItems', function(plate, items)
+RegisterServerEvent("mrp:inventory:server:addTrunkItems")
+AddEventHandler('mrp:inventory:server:addTrunkItems', function(plate, items)
 	Trunks[plate] = {}
 	Trunks[plate].items = items
 end)
 
-RegisterServerEvent("inventory:server:combineItem")
-AddEventHandler('inventory:server:combineItem', function(item, fromItem, toItem)
+RegisterServerEvent("mrp:inventory:server:combineItem")
+AddEventHandler('mrp:inventory:server:combineItem', function(item, fromItem, toItem)
 	local src = source
 	local ply = MRP_SERVER.getSpawnedCharacter(src)
 	AddItem(ply, item, 1)
@@ -210,8 +210,8 @@ AddEventHandler('inventory:server:combineItem', function(item, fromItem, toItem)
 	RemoveItem(ply, toItem, 1)
 end)
 
-RegisterServerEvent("inventory:server:CraftItems")
-AddEventHandler('inventory:server:CraftItems', function(itemName, itemCosts, amount, toSlot, points)
+RegisterServerEvent("mrp:inventory:server:CraftItems")
+AddEventHandler('mrp:inventory:server:CraftItems', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
@@ -222,34 +222,34 @@ AddEventHandler('inventory:server:CraftItems', function(itemName, itemCosts, amo
 		AddItem(Player, itemName, amount, toSlot)
 		--Player.Functions.SetMetaData("craftingrep", Player.PlayerData.metadata["craftingrep"]+(points*amount))
         --TODO XP
-		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+		TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
 
-RegisterServerEvent("inventory:server:AddItem")
-AddEventHandler('inventory:server:AddItem', function(itemName, amount, slot, info)
+RegisterServerEvent("mrp:inventory:server:AddItem")
+AddEventHandler('mrp:inventory:server:AddItem', function(itemName, amount, slot, info)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil then
 		AddItem(Player, itemName, amount, toSlot)
-		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+		TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
 
-RegisterServerEvent("inventory:server:RemoveItem")
-AddEventHandler('inventory:server:RemoveItem', function(itemName, amount, slot, info)
+RegisterServerEvent("mrp:inventory:server:RemoveItem")
+AddEventHandler('mrp:inventory:server:RemoveItem', function(itemName, amount, slot, info)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil then
 		RemoveItem(Player, itemName, amount, slot)
-		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+		TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
 
-RegisterServerEvent('inventory:server:CraftAttachment')
-AddEventHandler('inventory:server:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
+RegisterServerEvent('mrp:inventory:server:CraftAttachment')
+AddEventHandler('mrp:inventory:server:CraftAttachment', function(itemName, itemCosts, amount, toSlot, points)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
@@ -260,12 +260,12 @@ AddEventHandler('inventory:server:CraftAttachment', function(itemName, itemCosts
 		AddItem(Player, itemName, amount, toSlot)
 		--Player.Functions.SetMetaData("attachmentcraftingrep", Player.PlayerData.metadata["attachmentcraftingrep"]+(points*amount))
         --TODO XP
-		TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, false)
+		TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, false)
 	end
 end)
 
-RegisterServerEvent("inventory:server:SetIsOpenState")
-AddEventHandler('inventory:server:SetIsOpenState', function(IsOpen, type, id)
+RegisterServerEvent("mrp:inventory:server:SetIsOpenState")
+AddEventHandler('mrp:inventory:server:SetIsOpenState', function(IsOpen, type, id)
 	if not IsOpen then
 		if type == "stash" then
 			Stashes[id].isOpen = false
@@ -277,8 +277,8 @@ AddEventHandler('inventory:server:SetIsOpenState', function(IsOpen, type, id)
 	end
 end)
 
-RegisterServerEvent("inventory:server:OpenInventory")
-AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
+RegisterServerEvent("mrp:inventory:server:OpenInventory")
+AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other)
 	local src = source
 	--local ply = Player(src)
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
@@ -307,7 +307,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						if Stashes[id].isOpen then
 							local Target = MRP_SERVER.getSpawnedCharacter(Stashes[id].isOpen)
 							if Target ~= nil then
-								TriggerClientEvent('inventory:client:CheckOpenState', Stashes[id].isOpen, name, id, Stashes[id].label)
+								TriggerClientEvent('mrp:inventory:client:CheckOpenState', Stashes[id].isOpen, name, id, Stashes[id].label)
 							else
 								Stashes[id].isOpen = false
 							end
@@ -350,7 +350,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						if Trunks[id].isOpen then
 							local Target = MRP_SERVER.getSpawnedCharacter(Trunks[id].isOpen)
 							if Target ~= nil then
-								TriggerClientEvent('inventory:client:CheckOpenState', Trunks[id].isOpen, name, id, Trunks[id].label)
+								TriggerClientEvent('mrp:inventory:client:CheckOpenState', Trunks[id].isOpen, name, id, Trunks[id].label)
 							else
 								Trunks[id].isOpen = false
 							end
@@ -395,7 +395,7 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						if Gloveboxes[id].isOpen then
 							local Target = MRP_SERVER.getSpawnedCharacter(Gloveboxes[id].isOpen)
 							if Target ~= nil then
-								TriggerClientEvent('inventory:client:CheckOpenState', Gloveboxes[id].isOpen, name, id, Gloveboxes[id].label)
+								TriggerClientEvent('mrp:inventory:client:CheckOpenState', Gloveboxes[id].isOpen, name, id, Gloveboxes[id].label)
 							else
 								Gloveboxes[id].isOpen = false
 							end
@@ -506,9 +506,9 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
 						--Drops[id].label = secondInv.label
 					end
 				end
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
+				TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
 			else
-				TriggerClientEvent("inventory:client:OpenInventory", src, PlayerAmmo, inventory.items)
+				TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items)
 			end
 		end)
     --[[else
@@ -516,8 +516,8 @@ AddEventHandler('inventory:server:OpenInventory', function(name, id, other)
     end ]]--	
 end)
 
-RegisterServerEvent("inventory:server:SaveInventory")
-AddEventHandler('inventory:server:SaveInventory', function(type, id)
+RegisterServerEvent("mrp:inventory:server:SaveInventory")
+AddEventHandler('mrp:inventory:server:SaveInventory', function(type, id)
 	if type == "trunk" then
 		if (IsVehicleOwned(source, id)) then
 			SaveOwnedVehicleItems(id, Trunks[id].items)
@@ -537,7 +537,7 @@ AddEventHandler('inventory:server:SaveInventory', function(type, id)
 			Drops[id].isOpen = false
 			if Drops[id].items == nil or next(Drops[id].items) == nil then
 				Drops[id] = nil
-				TriggerClientEvent("inventory:client:RemoveDropItem", -1, id)
+				TriggerClientEvent("mrp:inventory:client:RemoveDropItem", -1, id)
 			end
 		end
     elseif type == "container" then
@@ -545,22 +545,22 @@ AddEventHandler('inventory:server:SaveInventory', function(type, id)
             Containers[id.id].isOpen = false
         if Containers[id.id].items == nil or next(Containers[id.id].items) == nil then
             Containers[id.id] = nil
-            TriggerClientEvent("inventory:client:RemoveContainerItem", -1, id)
+            TriggerClientEvent("mrp:inventory:client:RemoveContainerItem", -1, id)
         end
     end
 end
 end)
 
-RegisterServerEvent("inventory:server:getInventory")
-AddEventHandler('inventory:server:getInventory', function(source, query, uuid)
+RegisterServerEvent("mrp:inventory:server:getInventory")
+AddEventHandler('mrp:inventory:server:getInventory', function(source, query, uuid)
     local src = source
     MRP_SERVER.read('inventory', query, function(inventory)
-        TriggerClientEvent("inventory:server:getInventory:response", src, inventory, uuid)
+        TriggerClientEvent("mrp:inventory:server:getmrp:inventory:response", src, inventory, uuid)
     end)
 end)
 
-RegisterServerEvent("inventory:server:UseItemSlot")
-AddEventHandler('inventory:server:UseItemSlot', function(slot)
+RegisterServerEvent("mrp:inventory:server:UseItemSlot")
+AddEventHandler('mrp:inventory:server:UseItemSlot', function(slot)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	GetItemBySlot(Player, slot, function(itemData)
@@ -569,14 +569,14 @@ AddEventHandler('inventory:server:UseItemSlot', function(slot)
     		if itemData.type == "weapon" then
     			if itemData.info.quality ~= nil then
     				if itemData.info.quality > 0 then
-    					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
+    					TriggerClientEvent("mrp:inventory:client:UseWeapon", src, itemData, true)
     				else
-    					TriggerClientEvent("inventory:client:UseWeapon", src, itemData, false)
+    					TriggerClientEvent("mrp:inventory:client:UseWeapon", src, itemData, false)
     				end
     			else
-    				TriggerClientEvent("inventory:client:UseWeapon", src, itemData, true)
+    				TriggerClientEvent("mrp:inventory:client:UseWeapon", src, itemData, true)
     			end
-    			TriggerClientEvent('inventory:client:ItemBox', src, itemInfo, "use")
+    			TriggerClientEvent('mrp:inventory:client:ItemBox', src, itemInfo, "use")
     		elseif itemData.useable then
                 --RemoveItem(Player, itemData.name, 1, itemData.slot)
                 
@@ -601,12 +601,12 @@ AddEventHandler('mrp:server:item:used', function(source, item)
     if item.useable then
         RemoveItem(Player, item.name, 1, item.slot)
         local itemInfo = MRPShared.Items(item.name)
-        TriggerClientEvent('inventory:client:ItemBox', source, itemInfo, "use")
+        TriggerClientEvent('mrp:inventory:client:ItemBox', source, itemInfo, "use")
     end
 end)
 
-RegisterServerEvent("inventory:server:UseItem")
-AddEventHandler('inventory:server:UseItem', function(inventory, item)
+RegisterServerEvent("mrp:inventory:server:UseItem")
+AddEventHandler('mrp:inventory:server:UseItem', function(inventory, item)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	if inventory == "player" or inventory == "hotbar" then
@@ -626,8 +626,8 @@ AddEventHandler('inventory:server:UseItem', function(inventory, item)
 	end
 end)
 
-RegisterServerEvent("inventory:server:SetInventoryData")
-AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
+RegisterServerEvent("mrp:inventory:server:SetInventoryData")
+AddEventHandler('mrp:inventory:server:SetInventoryData', function(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
 	local src = source
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local fromSlot = tonumber(fromSlot)
@@ -644,7 +644,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     			if toInventory == "player" or toInventory == "hotbar" then
                     GetItemBySlot(Player, toSlot, function(toItemData)
                         RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-        				TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+        				TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
         				--Player.PlayerData.items[toSlot] = fromItemData
         				if toItemData ~= nil then
         					--Player.PlayerData.items[fromSlot] = toItemData
@@ -661,7 +661,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
                 elseif Containers[toInventory] ~= nil then
                     local toItemData = Containers[toInventory].items[toSlot]
                     RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-                    TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+                    TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
                     if toItemData ~= nil then
                         local itemInfo = MRPShared.Items(toItemData.name:lower())
                         local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
@@ -679,7 +679,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				local OtherPlayer = MRP_SERVER.getSpawnedCharacter(playerId)
                     GetItemBySlot(OtherPlayer, toSlot, function(toItemData)
                         RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-        				TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+        				TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
         				--Player.PlayerData.items[toSlot] = fromItemData
         				if toItemData ~= nil then
         					--Player.PlayerData.items[fromSlot] = toItemData
@@ -703,7 +703,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				local plate = MRPShared.SplitStr(toInventory, "-")[2]
     				local toItemData = Trunks[plate].items[toSlot]
     				RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-    				TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+    				TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
@@ -724,7 +724,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				local plate = MRPShared.SplitStr(toInventory, "-")[2]
     				local toItemData = Gloveboxes[plate].items[toSlot]
     				RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-    				TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+    				TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
@@ -745,7 +745,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				local stashId = MRPShared.SplitStr(toInventory, "-")[2]
     				local toItemData = Stashes[stashId].items[toSlot]
     				RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-    				TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+    				TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
     				--Player.PlayerData.items[toSlot] = fromItemData
     				if toItemData ~= nil then
     					--Player.PlayerData.items[fromSlot] = toItemData
@@ -770,7 +770,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				local IsItemValid = exports['qb-traphouse']:CanItemBeSaled(fromItemData.name:lower())
     				if IsItemValid then
     					Player.Functions.RemoveItem(fromItemData.name, fromAmount, fromSlot)
-    					TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+    					TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
     					if toItemData ~= nil then
     						local itemInfo = MRPShared.Items(toItemData.name:lower())
     						local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
@@ -796,7 +796,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     				else
     					local toItemData = Drops[toInventory].items[toSlot]
     					RemoveItem(Player, fromItemData.name, fromAmount, fromSlot)
-    					TriggerClientEvent("inventory:client:CheckWeapon", src, fromItemData.name)
+    					TriggerClientEvent("mrp:inventory:client:CheckWeapon", src, fromItemData.name)
     					if toItemData ~= nil then
     						local itemInfo = MRPShared.Items(toItemData.name:lower())
     						local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
@@ -833,7 +833,7 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
     			if toInventory == "player" or toInventory == "hotbar" then
                     GetItemBySlot(Player, toSlot, function(toItemData)
                         RemoveItem(OtherPlayer, itemInfo["name"], fromAmount, fromSlot)
-        				TriggerClientEvent("inventory:client:CheckWeapon", OtherPlayer.PlayerData.source, fromItemData.name)
+        				TriggerClientEvent("mrp:inventory:client:CheckWeapon", OtherPlayer.PlayerData.source, fromItemData.name)
         				if toItemData ~= nil then
         					local itemInfo = MRPShared.Items(toItemData.name:lower())
         					local toAmount = tonumber(toAmount) ~= nil and tonumber(toAmount) or toItemData.amount
@@ -1157,9 +1157,9 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 	elseif fromInventory == "crafting" then
 		local itemData = Config.CraftingItems[fromSlot]
 		if hasCraftItems(src, itemData.costs, fromAmount) then
-			TriggerClientEvent("inventory:client:CraftItems", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
+			TriggerClientEvent("mrp:inventory:client:CraftItems", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
 		else
-			TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, true)
+			TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, true)
             TriggerClientEvent('chat:addMessage', src, {
                 template = '<div class="chat-message nonemergency">{0}</div>',
                 args = {"You don't have the right items.."}
@@ -1168,9 +1168,9 @@ AddEventHandler('inventory:server:SetInventoryData', function(fromInventory, toI
 	elseif fromInventory == "attachment_crafting" then
 		local itemData = Config.AttachmentCrafting["items"][fromSlot]
 		if hasCraftItems(src, itemData.costs, fromAmount) then
-			TriggerClientEvent("inventory:client:CraftAttachment", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
+			TriggerClientEvent("mrp:inventory:client:CraftAttachment", src, itemData.name, itemData.costs, fromAmount, toSlot, itemData.points)
 		else
-			TriggerClientEvent("inventory:client:UpdatePlayerInventory", src, true)
+			TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, true)
             TriggerClientEvent('chat:addMessage', src, {
                 template = '<div class="chat-message nonemergency">{0}</div>',
                 args = {"You don't have the right items.."}
@@ -1837,14 +1837,14 @@ function RemoveFromDrop(dropId, slot, itemName, amount)
 			Drops[dropId].items[slot] = nil
 			if next(Drops[dropId].items) == nil then
 				Drops[dropId].items = {}
-				--TriggerClientEvent("inventory:client:RemoveDropItem", -1, dropId)
+				--TriggerClientEvent("mrp:inventory:client:RemoveDropItem", -1, dropId)
 			end
 		end
 	else
 		Drops[dropId].items[slot] = nil
 		if Drops[dropId].items == nil then
 			Drops[dropId].items[slot] = nil
-			--TriggerClientEvent("inventory:client:RemoveDropItem", -1, dropId)
+			--TriggerClientEvent("mrp:inventory:client:RemoveDropItem", -1, dropId)
 		end
 	end
 end
@@ -1888,7 +1888,7 @@ function CreateNewDrop(source, fromSlot, toSlot, itemAmount)
 	GetItemBySlot(Player, fromSlot, function(itemData)
         local coords = GetEntityCoords(GetPlayerPed(source))
     	RemoveItem(Player, itemData.name, itemAmount, itemData.slot)
-    	TriggerClientEvent("inventory:client:CheckWeapon", source, itemData.name)
+    	TriggerClientEvent("mrp:inventory:client:CheckWeapon", source, itemData.name)
     	local itemInfo = MRPShared.Items(itemData.name:lower())
     	local dropId = CreateDropId()
     	Drops[dropId] = {}
@@ -1909,8 +1909,8 @@ function CreateNewDrop(source, fromSlot, toSlot, itemAmount)
     		id = dropId,
     	}
     	--TriggerEvent("qb-log:server:CreateLog", "drop", "New Item Drop", "red", "**".. GetPlayerName(source) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..source.."*) dropped new item; name: **"..itemData.name.."**, amount: **" .. itemAmount .. "**")
-    	TriggerClientEvent("inventory:client:DropItemAnim", source)
-    	TriggerClientEvent("inventory:client:AddDropItem", -1, dropId, source, coords)
+    	TriggerClientEvent("mrp:inventory:client:DropItemAnim", source)
+    	TriggerClientEvent("mrp:inventory:client:AddDropItem", -1, dropId, source, coords)
     	--[[if itemData.name:lower() == "radio" then
     		TriggerClientEvent('qb-radio:onRadioDrop', source)
     	end]]--
@@ -1949,7 +1949,7 @@ RegisterCommand('resetinv', function(source, args, rawCommand)
 end, false) --TODO unrestricted for now
 
 RegisterCommand('trunkpos', function(source, args, rawCommand)
-	TriggerClientEvent("inventory:client:ShowTrunkPos", source)
+	TriggerClientEvent("mrp:inventory:client:ShowTrunkPos", source)
 end, false)
 
 RegisterCommand("rob", function(source, args, rawCommand)
@@ -2024,7 +2024,7 @@ RegisterCommand("randomitems", function(source, args, rawCommand)
 			amount = 1
 		end
 		AddItem(Player, randitem["name"], amount)
-		TriggerClientEvent('inventory:client:ItemBox', source, MRPShared.Items(randitem["name"]), 'add')
+		TriggerClientEvent('mrp:inventory:client:ItemBox', source, MRPShared.Items(randitem["name"]), 'add')
         Citizen.Wait(500)
 	end
 end, false) --TODO unrestricted for now
@@ -2034,7 +2034,7 @@ end, false) --TODO unrestricted for now
 	local Player = QBCore.Functions.GetPlayer(source)
 	local itemData = Player.Functions.GetItemBySlot(item.slot)
 	if Player.Functions.GetItemBySlot(item.slot) ~= nil then
-        TriggerClientEvent("inventory:client:UseSnowball", source, itemData.amount)
+        TriggerClientEvent("mrp:inventory:client:UseSnowball", source, itemData.amount)
     end
 end)
 
