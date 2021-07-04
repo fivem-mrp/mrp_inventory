@@ -626,6 +626,19 @@ AddEventHandler('mrp:inventory:server:UseItem', function(inventory, item)
 	end
 end)
 
+RegisterServerEvent('mrp:inventory:server:hasItem')
+AddEventHandler('mrp:inventory:server:hasItem', function(source, name, uuid)
+    local src = source
+    local char = MRP_SERVER.getSpawnedCharacter(src)
+    local query = {
+        owner = char._id,
+        ["items.name"] = name
+    }
+    MRP_SERVER.count('inventory', query, function(itemsCount)
+        TriggerClientEvent("mrp:inventory:server:hasItem:response", src, itemsCount, uuid)
+    end)
+end)
+
 RegisterServerEvent("mrp:inventory:server:SetInventoryData")
 AddEventHandler('mrp:inventory:server:SetInventoryData', function(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
 	local src = source

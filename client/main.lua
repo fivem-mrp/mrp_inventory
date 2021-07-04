@@ -521,6 +521,12 @@ AddEventHandler("mrp:inventory:client:PickupSnowballs", function()
     end
 end)
 
+AddEventHandler('mrp:inventory:client:hasItem', function(name, cb)
+    MRP_CLIENT.TriggerServerCallback('mrp:inventory:server:hasItem', {name}, function(res)
+        cb(res)
+    end)
+end)
+
 RegisterNetEvent("mrp:inventory:client:UseSnowball")
 AddEventHandler("mrp:inventory:client:UseSnowball", function(amount)
     local ped = PlayerPedId()
