@@ -170,7 +170,7 @@ Citizen.CreateThread(function()
                                     template = '<div class="chat-message nonemergency">{0}</div>',
                                     args = {"Vehicle is locked"}
                                 })
-                                return
+                                goto continue
                             end
                         else
                             CurrentVehicle = nil
@@ -237,6 +237,8 @@ Citizen.CreateThread(function()
                 end
             end
         end
+        
+        ::continue::
     end
 end)
 
