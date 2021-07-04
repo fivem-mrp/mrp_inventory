@@ -519,7 +519,7 @@ function handleDragDrop() {
             amount = $("#item-amount").val();
             if (fromData.amount > 0) {
                 $.post("http://mrp_inventory/GiveItem", JSON.stringify({
-                    mrp: inventory: fromInventory,
+                    inventory: fromInventory,
                     item: fromData,
                     amount: parseInt(amount),
                 }));
@@ -541,7 +541,7 @@ function handleDragDrop() {
             }
             $(this).css("background", "rgba(35,35,35, 0.7");
             $.post("http://mrp_inventory/DropItem", JSON.stringify({
-                mrp: inventory: fromInventory,
+                inventory: fromInventory,
                 item: fromData,
                 amount: parseInt(amount),
             }));
@@ -704,8 +704,8 @@ function optionSwitch($fromSlot, $toSlot, $fromInv, $toInv, $toAmount, toData, f
     }
 
     $.post("http://mrp_inventory/SetInventoryData", JSON.stringify({
-        frommrp: inventory: $fromInv.attr("data-inventory"),
-        tomrp: inventory: $toInv.attr("data-inventory"),
+        fromInventory: $fromInv.attr("data-inventory"),
+        toInventory: $toInv.attr("data-inventory"),
         fromSlot: $fromSlot,
         toSlot: $toSlot,
         fromAmount: $toAmount,
@@ -923,8 +923,8 @@ function swap($fromSlot, $toSlot, $fromInv, $toInv, $toAmount) {
             }
             $.post("http://mrp_inventory/PlayDropSound", JSON.stringify({}));
             $.post("http://mrp_inventory/SetInventoryData", JSON.stringify({
-                frommrp: inventory: $fromInv.attr("data-inventory"),
-                tomrp: inventory: $toInv.attr("data-inventory"),
+                fromInventory: $fromInv.attr("data-inventory"),
+                toInventory: $toInv.attr("data-inventory"),
                 fromSlot: $fromSlot,
                 toSlot: $toSlot,
                 fromAmount: $toAmount,
@@ -1051,8 +1051,8 @@ function swap($fromSlot, $toSlot, $fromInv, $toInv, $toAmount) {
                     }
 
                     $.post("http://mrp_inventory/SetInventoryData", JSON.stringify({
-                        frommrp: inventory: $fromInv.attr("data-inventory"),
-                        tomrp: inventory: $toInv.attr("data-inventory"),
+                        fromInventory: $fromInv.attr("data-inventory"),
+                        toInventory: $toInv.attr("data-inventory"),
                         fromSlot: $fromSlot,
                         toSlot: $toSlot,
                         fromAmount: $toAmount,
@@ -1073,8 +1073,8 @@ function swap($fromSlot, $toSlot, $fromInv, $toInv, $toAmount) {
                     }
 
                     $.post("http://mrp_inventory/SetInventoryData", JSON.stringify({
-                        frommrp: inventory: $fromInv.attr("data-inventory"),
-                        tomrp: inventory: $toInv.attr("data-inventory"),
+                        fromInventory: $fromInv.attr("data-inventory"),
+                        toInventory: $toInv.attr("data-inventory"),
                         fromSlot: $fromSlot,
                         toSlot: $toSlot,
                         fromAmount: $toAmount,
@@ -1211,8 +1211,8 @@ function swap($fromSlot, $toSlot, $fromInv, $toInv, $toAmount) {
                 }
                 $.post("http://mrp_inventory/PlayDropSound", JSON.stringify({}));
                 $.post("http://mrp_inventory/SetInventoryData", JSON.stringify({
-                    frommrp: inventory: $fromInv.attr("data-inventory"),
-                    tomrp: inventory: $toInv.attr("data-inventory"),
+                    fromInventory: $fromInv.attr("data-inventory"),
+                    toInventory: $toInv.attr("data-inventory"),
                     fromSlot: $fromSlot,
                     toSlot: $toSlot,
                     fromAmount: $toAmount,
