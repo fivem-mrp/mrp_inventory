@@ -237,6 +237,38 @@ AddEventHandler('mrp:inventory:server:AddItem', function(itemName, amount, slot,
 	end
 end)
 
+RegisterServerEvent("mrp:inventory:server:UpdateItem")
+AddEventHandler('mrp:inventory:server:UpdateItem', function(item)
+	local src = source
+	local ply = MRP_SERVER.getSpawnedCharacter(src)
+	if item ~= nil then
+        MRP_SERVER.read('inventory', {
+            owner = ply._id
+        }, function(inventory)
+            if inventory == nil then
+                return
+            end
+            
+            local items = {}
+            if inventory.items ~= nil then
+                for k, v in pairs(inventory.items) do
+                    if v.name == item.name and item.slot == v.slot then
+                        table.insert(items, item)
+                    else
+                        table.insert(items, v)
+                    end
+                end
+                
+                inventory.items = items
+                
+                MRP_SERVER.update('inventory', inventory, {owner = ply._id}, {upsert=true}, function(res)
+                    print('Inventory item updated for ' .. ply.name .. ' ' .. ply.surname)
+                end)
+            end
+        end)
+	end
+end)
+
 RegisterServerEvent("mrp:inventory:server:RemoveItem")
 AddEventHandler('mrp:inventory:server:RemoveItem', function(itemName, amount, slot, info)
 	local src = source

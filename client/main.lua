@@ -527,6 +527,45 @@ AddEventHandler('mrp:inventory:client:hasItem', function(name, cb)
     end)
 end)
 
+AddEventHandler('mrp:inventory:client:useAmmo', function(data)
+    if currentWeapon == nil then
+        TriggerEvent('chat:addMessage', {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"You don't have a weapon equipped to use ammo"}
+        })
+        return;
+    end
+    
+    if currentWeapon.ammotype ~= data.name then
+        TriggerEvent('chat:addMessage', {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"Wrong type of ammo for your weapon"}
+        })
+        return;
+    end
+    
+    local rounds = Config.AmmoRounds[data.name]
+    if rounds == nil then
+        TriggerEvent('chat:addMessage', {
+            template = '<div class="chat-message nonemergency">{0}</div>',
+            args = {"Unknown ammo type"}
+        })
+        return;
+    end
+    
+    local ped = PlayerPedId()
+    local ammo = GetAmmoInPedWeapon(ped, GetHashKey(currentWeapon.name));
+    ammo = ammo + rounds
+    
+    SetPedAmmo(ped, GetHashKey(currentWeapon.name), ammo)
+    
+    currentWeapon.info.ammo = ammo
+    
+    --TriggerServerEvent('mrp:inventory:server:RemoveItem', data.name, 1, data.slot)
+    data.persistent = false
+    TriggerServerEvent('mrp:server:item:used', GetPlayerServerId(PlayerId()), data)
+end)
+
 RegisterNetEvent("mrp:inventory:client:UseSnowball")
 AddEventHandler("mrp:inventory:client:UseSnowball", function(amount)
     local ped = PlayerPedId()
@@ -539,9 +578,17 @@ RegisterNetEvent("mrp:inventory:client:UseWeapon")
 AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool)
     local ped = PlayerPedId()
     local weaponName = tostring(weaponData.name)
-    if currentWeapon == weaponName then
+    if currentWeapon ~= nil and currentWeapon.name == weaponName then
+        LoadAnimDict(Config.WeaponOutDict)
+        TaskPlayAnim(ped, Config.WeaponOutDict, Config.WeaponHideAnim, 8.0, 2.0, 2000, 48, 2, 0, 0, 0)
+        Citizen.Wait(1000)
+        
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
         TriggerEvent('weapons:client:SetCurrentWeapon', nil, shootbool)
+        --update ammo
+        local ammo = GetAmmoInPedWeapon(ped, GetHashKey(weaponName));
+        currentWeapon.info.ammo = ammo
+        TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
         currentWeapon = nil
     elseif weaponName == "weapon_stickybomb" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
@@ -549,17 +596,17 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
         TriggerServerEvent('mrp:inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
-        currentWeapon = weaponName
+        currentWeapon = weaponData
     elseif weaponName == "weapon_snowball" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), 10)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
         TriggerServerEvent('mrp:inventory:server:RemoveItem', weaponName, 1)
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
-        currentWeapon = weaponName
+        currentWeapon = weaponData
     else
         TriggerEvent('weapons:client:SetCurrentWeapon', weaponData, shootbool)
-        local ammo = 0
+        local ammo = GetAmmoInPedWeapon(ped, GetHashKey(weaponName));
         if weaponData ~= nil and weaponData.info ~= nil and weaponData.info.ammo then
             ammo = weaponData.info.ammo
             ammo = tonumber(ammo)
@@ -568,6 +615,11 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
         if weaponName == "weapon_petrolcan" or weaponName == "weapon_fireextinguisher" then 
             ammo = 4000 
         end
+        
+        LoadAnimDict(Config.WeaponOutDict)
+        TaskPlayAnim(ped, Config.WeaponOutDict, Config.WeaponOutAnim, 8.0, 2.0, 2000, 48, 2, 0, 0, 0)
+        Citizen.Wait(1000)
+        
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
         SetPedAmmo(ped, GetHashKey(weaponName), ammo)
         SetCurrentPedWeapon(ped, GetHashKey(weaponName), true)
@@ -576,7 +628,7 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
                 GiveWeaponComponentToPed(ped, GetHashKey(weaponName), GetHashKey(attachment.component))
             end
         end
-        currentWeapon = weaponName
+        currentWeapon = weaponData
     end
 end)
 
@@ -706,7 +758,7 @@ end)
 RegisterNetEvent("mrp:inventory:client:CheckWeapon")
 AddEventHandler("mrp:inventory:client:CheckWeapon", function(weaponName)
     local ped = PlayerPedId()
-    if currentWeapon == weaponName then 
+    if currentWeapon.name == weaponName then 
         TriggerEvent('weapons:ResetHolster')
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
         RemoveAllPedWeapons(ped, true)
@@ -937,3 +989,35 @@ function LoadAnimDict( dict )
         Citizen.Wait( 5 )
     end
 end
+
+Citizen.CreateThread(function()
+    local armed = false
+    local shooting = false
+    while true do
+        Wait(1)     
+        local ped = PlayerPedId()
+        if not IsPedArmed(ped, 7) then
+            if armed then
+                --print('was armed')
+                if currentWeapon ~= nil then
+                    local ammo = GetAmmoInPedWeapon(ped, GetHashKey(currentWeapon.name));
+                    currentWeapon.info.ammo = ammo
+                    TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
+                    currentWeapon = nil
+                end
+            end
+            Wait(1000)
+            armed = false
+        else
+            armed = true
+            if IsPedShooting(ped) then
+                shooting = true
+            else
+                --[[if shooting then
+                    print('was shooting')
+                end]]--
+                shooting = false
+            end
+        end
+    end
+end)

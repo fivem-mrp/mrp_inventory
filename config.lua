@@ -25,6 +25,18 @@ end
 
 Config.MaxWeight = 120000
 
+Config.AmmoRounds = {
+    pistol_ammo = 12,
+    smg_ammo = 30,
+    rifle_ammo = 30,
+    shotgun_ammo = 8,
+    mg_ammo = 54,
+}
+
+Config.WeaponOutDict = "reaction@intimidation@1h"
+Config.WeaponOutAnim = "intro"
+Config.WeaponHideAnim = "outro"
+
 Config.CraftingItems = {
     [1] = {
         name = "lockpick",
