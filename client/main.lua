@@ -758,7 +758,7 @@ end)
 RegisterNetEvent("mrp:inventory:client:CheckWeapon")
 AddEventHandler("mrp:inventory:client:CheckWeapon", function(weaponName)
     local ped = PlayerPedId()
-    if currentWeapon.name == weaponName then 
+    if currentWeapon ~= nil and currentWeapon.name == weaponName then 
         TriggerEvent('weapons:ResetHolster')
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
         RemoveAllPedWeapons(ped, true)
