@@ -310,8 +310,11 @@ AddEventHandler('mrp:inventory:server:SetIsOpenState', function(IsOpen, type, id
 end)
 
 RegisterServerEvent("mrp:inventory:server:OpenInventory")
-AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other)
+AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, pid)
 	local src = source
+    if pid ~= nil then
+        src = pid
+    end
 	--local ply = Player(src)
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local PlayerAmmo = {}
@@ -684,7 +687,8 @@ AddEventHandler('mrp:inventory:server:SetInventoryData', function(fromInventory,
 
 	if fromInventory == "player" or fromInventory == "hotbar" then
 		GetItemBySlot(Player, fromSlot, function(fromItemData)
-            local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or fromItemData.amount
+            local fromAmount = tonumber(fromAmount) ~= nil and tonumber(fromAmount) or tonumber(fromItemData.amount)
+            fromItemData.amount = tonumber(fromItemData.amount)
     		if fromItemData ~= nil and fromItemData.amount >= fromAmount then
     			if toInventory == "player" or toInventory == "hotbar" then
                     GetItemBySlot(Player, toSlot, function(toItemData)
