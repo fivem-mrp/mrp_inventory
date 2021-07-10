@@ -120,6 +120,7 @@ Citizen.CreateThread(function()
     while true do
         Citizen.Wait(7)
         if not inInventory then
+            EnableControlAction(1, 19, true) --enable ATL key
             local containers = exports["mrp_core"].EnumerateObjects()
             if containers ~= 0 and containers ~= nil then
                 local ped = PlayerPedId()
@@ -135,6 +136,8 @@ Citizen.CreateThread(function()
                     end
                 end
             end
+        else
+            DisableControlAction(1, 19, true) --disable ATL key
         end
     end
 end)
@@ -351,6 +354,7 @@ end)
 RegisterNetEvent("mrp:inventory:client:OpenInventory")
 AddEventHandler("mrp:inventory:client:OpenInventory", function(PlayerAmmo, inventory, other)
     if not IsEntityDead(PlayerPedId()) then
+        MRP_CLIENT.setPlayerMetadata("inMenu", true)
         ToggleHotbar(false)
         SetNuiFocus(true, true)
         --TriggerScreenblurFadeIn(1500)
@@ -816,6 +820,7 @@ end)
 
 RegisterNUICallback("CloseInventory", function(data, cb)
     cb()
+    MRP_CLIENT.setPlayerMetadata("inMenu", false)
     if currentOtherInventory == "none-inv" then
         CurrentDrop = 0
         CurrentVehicle = nil
@@ -823,9 +828,7 @@ RegisterNUICallback("CloseInventory", function(data, cb)
         CurrentStash = nil
         CurrentContainer = nil
         SetNuiFocus(false, false)
-        --TriggerScreenblurFadeOut(0)  --Screen Blur / Remove All TriggerScreenblurFadeOut's and TriggerScreenblurFadein's
         inInventory = false
-        --ClearPedTasks(PlayerPedId())
         return
     end
     if CurrentVehicle ~= nil then
@@ -845,9 +848,7 @@ RegisterNUICallback("CloseInventory", function(data, cb)
         TriggerServerEvent("mrp:inventory:server:SaveInventory", "drop", CurrentDrop)
         CurrentDrop = 0
     end
-    --TriggerEvent('randPickupAnim')
     SetNuiFocus(false, false)
-    --TriggerScreenblurFadeOut(0)
     inInventory = false
 end)
 RegisterNUICallback("UseItem", function(data, cb)
