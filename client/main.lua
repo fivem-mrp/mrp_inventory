@@ -815,6 +815,7 @@ RegisterNUICallback('getCombineItem', function(data, cb)
 end)
 
 RegisterNUICallback("CloseInventory", function(data, cb)
+    cb()
     if currentOtherInventory == "none-inv" then
         CurrentDrop = 0
         CurrentVehicle = nil
