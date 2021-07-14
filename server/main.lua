@@ -311,7 +311,7 @@ end)
 
 RegisterServerEvent("mrp:inventory:server:OpenInventory")
 AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, pid)
-	local src = source
+    local src = source
     if pid ~= nil then
         src = pid
     end
@@ -374,7 +374,10 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							Stashes[id].isOpen = src
 							Stashes[id].label = secondInv.label
 						else
-							Stashes[id].isOpen = false
+							Stashes[id] = {}
+							Stashes[id].items = {}
+							Stashes[id].isOpen = src
+							Stashes[id].label = secondInv.label
 						end
 					end
 				elseif name == "trunk" then
@@ -433,16 +436,9 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							end
 						end
 					end
-				end
-				secondInv.name = "trunk-"..id
-				secondInv.label = "Trunk-"..id
-				secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
-				secondInv.inventory = {}
-				secondInv.slots = other.slots ~= nil and other.slots or 50
-				if (Trunks[id] ~= nil and Trunks[id].isOpen) or (QBCore.Shared.SplitStr(id, "PLZI")[2] ~= nil and Player.PlayerData.job.name ~= "police") then
-					secondInv.name = "none-inv"
-					secondInv.label = "Trunk-None"
-					secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
+					secondInv.name = "glovebox-"..id
+					secondInv.label = "Glovebox-"..id
+					secondInv.maxweight = 10000
 					secondInv.inventory = {}
 					secondInv.slots = 5
 					if Gloveboxes[id] ~= nil and Gloveboxes[id].isOpen then
@@ -459,19 +455,15 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							Gloveboxes[id].label = secondInv.label
 						elseif IsVehicleOwned(src, id) and next(ownedItems) ~= nil then
 							secondInv.inventory = ownedItems
-							Trunks[id] = {}
-							Trunks[id].items = ownedItems
-							Trunks[id].isOpen = src
-							Trunks[id].label = secondInv.label
-						elseif Trunks[id] ~= nil and not Trunks[id].isOpen then
-							secondInv.inventory = Trunks[id].items
-							Trunks[id].isOpen = src
-							Trunks[id].label = secondInv.label
+							Gloveboxes[id] = {}
+							Gloveboxes[id].items = ownedItems
+							Gloveboxes[id].isOpen = src
+							Gloveboxes[id].label = secondInv.label
 						else
-							Trunks[id] = {}
-							Trunks[id].items = {}
-							Trunks[id].isOpen = src
-							Trunks[id].label = secondInv.label
+							Gloveboxes[id] = {}
+							Gloveboxes[id].items = {}
+							Gloveboxes[id].isOpen = src
+							Gloveboxes[id].label = secondInv.label
 						end
 					end
 				elseif name == "shop" then
@@ -541,10 +533,12 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 						Drops[id].isOpen = src
 						Drops[id].label = secondInv.label
 					else
-						Gloveboxes[id] = {}
-						Gloveboxes[id].items = {}
-						Gloveboxes[id].isOpen = src
-						Gloveboxes[id].label = secondInv.label
+						secondInv.name = "none-inv"
+						secondInv.label = "ERROR"
+						secondInv.maxweight = 0
+						secondInv.inventory = {}
+						secondInv.slots = 0
+						--Drops[id].label = secondInv.label
 					end
 				end
 				TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)

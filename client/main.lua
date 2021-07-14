@@ -599,12 +599,12 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
         Citizen.Wait(1000)
         
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
-        RemoveAllPedWeapons(ped, true)
         TriggerEvent('weapons:client:SetCurrentWeapon', nil, shootbool)
         --update ammo
         local ammo = GetAmmoInPedWeapon(ped, GetHashKey(weaponName));
         currentWeapon.info.ammo = ammo
         TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
+        RemoveAllPedWeapons(ped, true)
         currentWeapon = nil
     elseif weaponName == "weapon_stickybomb" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
@@ -777,7 +777,7 @@ AddEventHandler("mrp:inventory:client:CheckWeapon", function(weaponName)
     if currentWeapon ~= nil and currentWeapon.name == weaponName then 
         TriggerEvent('weapons:ResetHolster')
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
-        RemoveAllPedWeapons(ped, true)
+        --RemoveAllPedWeapons(ped, true)
         currentWeapon = nil
     end
 end)
