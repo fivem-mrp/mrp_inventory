@@ -1,23 +1,16 @@
-fx_version 'adamant'
+fx_version 'cerulean'
 game 'gta5'
 
-description 'Inventory Made By Axis fixed up by ihyajb'
+description 'aj-inventory'
+version '1.0.0'
 
-dependencies {
-    "mrp_core"
+shared_scripts { 
+	'@mrp_core/shared/MRPShared.lua',
+	'config.lua'
 }
 
-server_scripts {
-    '@mrp_core/shared/MRPShared.lua',
-    'config.lua',
-    'server/main.lua',
-}
-
-client_scripts {
-    '@mrp_core/shared/MRPShared.lua',
-    'config.lua',
-    'client/main.lua',
-}
+server_script 'server/main.lua'
+client_script 'client/main.lua'
 
 ui_page {
     'html/ui.html'

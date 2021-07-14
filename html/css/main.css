@@ -39,12 +39,29 @@ input[type=number]::-webkit-outer-spin-button {
 
 ::-webkit-scrollbar-thumb
 {
-	background-color: #5285b6;
+	background-color: #466887;
 }
 
 body {
     overflow-x: hidden;
 }
+
+#progressbar {
+    border-radius: 50px;
+    background-color: rgba(24, 26, 30, 0.6);
+   }
+   .pro {
+       background: linear-gradient(to right, #389f46a9, #f35858b0 500px);
+     width: 0%;
+     height: 17px;
+     border-radius: 50px;
+   }
+   .pro1 {
+       background: linear-gradient(to right, #389f46a9, #f35858b0 500px);
+     width: 0%;
+     height: 17px;
+     border-radius: 50px;
+   }
 
 #qbus-inventory {
     position: absolute;
@@ -63,7 +80,6 @@ body {
     left: 0;
     z-index: -1;
 }
-
 .inv-container {
     position: absolute;
     width: 100%;
@@ -120,7 +136,7 @@ body {
 }
 
 .inv-options {
-    margin: 18% auto;
+    margin: 16% auto;
     background-color: rgba(24, 26, 30, 0.5);
     right: 0;
     width: 9%;
@@ -136,7 +152,7 @@ body {
     left: 0;
     right: 0;
     width: 9%;
-    top: 60%;
+    top: 36%;
     left: 3vh;
 }
 
@@ -148,8 +164,8 @@ body {
     margin-left: 2px;
     margin-bottom: 2px;
     background-color: rgba(0, 0, 0, 0.123);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-     border-radius: 0px 0px 8px 8px ;
+    border: 0.7px solid #243a4e70;
+     border-radius: 8px 8px 8px 8px ;
     transition: opacity 0.2s;
     opacity: 1.0;
 }
@@ -176,6 +192,8 @@ body {
     padding: 10%!important;
     background-color: rgba(235, 235, 235, 0);
 }
+
+
 
 #item-amount {
     color: white;
@@ -228,14 +246,14 @@ body {
     line-height: 48px;
     text-transform: uppercase;
     font-size: 1.1vh;
-    font-family: Verdana;
+    font-family: 'Verdana';
 }
 
 .inv-option-item {
     width: 80%;
     height: 50px;
   /*  background-color: rgba(120, 10, 20, 0.3); /* rgba(20, 20, 20, 0.5) */
-    border: 1px solid rgba(255, 255, 255, .01);
+    border: transparent;
     border-radius: 7px;
     color: white;
     transition: background-color .1s linear;
@@ -247,10 +265,10 @@ body {
 
 .btn-combine {
     position: relative;
-    margin-top: 20%;
+    margin-top: 28%;
     width: 80%;
     height: 50px;
-    background-color:  #5285b6; /* rgba(20, 20, 20, 0.5) */
+    background-color:  #466887; /* rgba(20, 20, 20, 0.5) */
     border: 1px solid rgba(255, 255, 255, 0.01);
     color: white;
     transition: background-color .1s linear;
@@ -267,7 +285,7 @@ body {
 }
 
 .btn-combine:hover {
-    background-color:transparent; /* rgba(20, 20, 20, 0.5) */
+    background-color:#468746
 }
 
 .item-slot-amount {
@@ -318,12 +336,10 @@ body {
     width: 0%;
     height: 100%;
     background-color: rgba(111, 195, 111, 0.8);
-    box-shadow: inset 0 0 .25vh 0 rgba(0, 0, 0, 0.2);
-    /*border-radius: 4px;*/
 }
 
 .item-slot-quality p {
-    color: rgba(247, 247, 247, 0);
+    color: rgba(255, 255, 255, 0);
     font-size: .8vh;
     text-align: center;
     text-transform: uppercase;
@@ -405,7 +421,7 @@ body {
 }
 
 .player-inv-weight p {
-    color: rgb(204, 11, 11);
+    color: rgba(255, 0, 0, 0);
     font-size: 12px;
     font-family: 'Roboto Mono', monospace;
 }
@@ -480,7 +496,7 @@ body {
     width: 110px;
     height: 130px;
     background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 0.7px solid #243a4e70;
 }
 
 #itembox-action {
@@ -500,7 +516,7 @@ body {
     position: absolute;
     bottom: 0;
     width: 100%;
-    background-color: #181E25;
+    background-color: #243a4e70;
     min-height: 2.2vh;
     height: fit-content;
      border-radius: 0px 0px 8px 8px ;
@@ -530,7 +546,7 @@ body {
     width: 110px;
     height: 130px;
     background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #243a4e70;
     float: left;
     margin-left: 20px;
 }
@@ -549,13 +565,13 @@ body {
     position: absolute;
     bottom:0;
     width: 100%;
-    background-color: rgba(24, 0, 0, 0.2);
+    background-color: #243a4e70;
     height: 21px;
 }
 
 #requiredItem-label > p {
     color: #ffffff;
-    font-size: 11px;
+    font-size: 10px;
     text-align: center;
     text-transform: uppercase;
     line-height: 19px;
@@ -593,7 +609,7 @@ body {
     margin-left: 2px;
     margin-bottom: 2px;
     background-color: rgba(0, 0, 0, 0.123);;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid #243a4e70;
     transition: opacity 0.2s;
     opacity: 1.0;
 }
@@ -659,7 +675,7 @@ body {
     top: 0;
     width: 100%;
     height: 5vh;
-    background-color: rgba(120, 10, 20, 0.5);
+    background-color: rgba(255, 0, 21, 0.5);
     text-align: center;
     color: rgba(216, 216, 216, 0.897);
 }
@@ -852,7 +868,7 @@ body {
     position: absolute;
     width: 6.5vh;
     height: 6.5vh;
-    background-color: rgb(15, 15, 15);
+    background-color: #466887;
     border-radius: 1vh;
     margin: 0 auto;
     left: 0;
@@ -865,7 +881,7 @@ body {
 }
 
 .weapon-attachments-remove:hover {
-    background-color: rgb(18, 18, 18);
+    background-color: rgb(0, 0, 0);
 }
 
 .weapon-attachments-remove > i {
@@ -873,7 +889,7 @@ body {
 }
 
 .weapon-attachments-remove-hover {
-    background-color: rgb(39, 174, 96);
+    background-color: rgb(174, 55, 39);
 }
 
 .weapon-dragging-class {
@@ -888,7 +904,7 @@ body {
     width: 10vh;
     height: 6vh;
     margin: 5vh;
-    background-color: rgb(15, 15, 15);
+    background-color: #466887;
     border-radius: .2vh;
     text-align: center;
     line-height: 6vh;
@@ -898,5 +914,19 @@ body {
 }
 
 .weapon-attachments-back:hover {
-    background-color: rgb(18, 18, 18);
+    background-color: #4668877c;
+}
+
+@keyframes ShakeEffect {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
 }

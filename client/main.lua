@@ -6,7 +6,6 @@ hotbarOpen = false
 local currentWeapon = nil
 local CurrentWeaponData = {}
 local currentOtherInventory = nil
-
 local Drops = {}
 local CurrentDrop = 0
 local DropsNear = {}
@@ -19,7 +18,6 @@ local CurrentStash = nil
 local CurrentContainer = nil
 local isCrafting = false
 local isHotbar = false
-
 local showTrunkPos = false
 local craftingDoneCallback = nil
 local pickupsnowballDoneCallback = nil
@@ -66,13 +64,20 @@ AddEventHandler('weapons:client:SetCurrentWeapon', function(data, bool)
     end
 end)
 
-RegisterNetEvent('randPickupAnim')
-AddEventHandler('randPickupAnim', function()
-    while not HasAnimDictLoaded("pickup_object") do RequestAnimDict("pickup_object") Wait(100) end
-    TaskPlayAnim(PlayerPedId(),'pickup_object', 'putdown_low',5.0, 1.5, 1.0, 48, 0.0, 0, 0, 0)
-    Wait(800)
-    ClearPedTasks(PlayerPedId())
-end)
+function GetClosestVending()
+    local ped = PlayerPedId()
+    local pos = GetEntityCoords(ped)
+    local object = nil
+    for _, machine in pairs(Config.VendingObjects) do
+        local ClosestObject = GetClosestObjectOfType(pos.x, pos.y, pos.z, 0.75, GetHashKey(machine), 0, 0, 0)
+        if ClosestObject ~= 0 and ClosestObject ~= nil then
+            if object == nil then
+                object = ClosestObject
+            end
+        end
+    end
+    return object
+end
 
 function DrawText3Ds(x, y, z, text)
 	SetTextScale(0.35, 0.35)
@@ -88,6 +93,14 @@ function DrawText3Ds(x, y, z, text)
     DrawRect(0.0, 0.0+0.0125, 0.017+ factor, 0.03, 0, 0, 0, 75)
     ClearDrawOrigin()
 end
+
+RegisterNetEvent('randPickupAnim')
+AddEventHandler('randPickupAnim', function()
+    while not HasAnimDictLoaded("pickup_object") do RequestAnimDict("pickup_object") Wait(100) end
+    TaskPlayAnim(PlayerPedId(),'pickup_object', 'putdown_low',5.0, 1.5, 1.0, 48, 0.0, 0, 0, 0)
+    Wait(800)
+    ClearPedTasks(PlayerPedId())
+end)
 
 Citizen.CreateThread(function()
     while true do
@@ -142,102 +155,98 @@ Citizen.CreateThread(function()
     end
 end)
 
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(7)
-        DisableControlAction(0, 47, true) -- G
-        if IsDisabledControlJustPressed(0, 47) and not isCrafting then
-            if not MRP_CLIENT.getPlayerMetadata()['isDead'] and not MRP_CLIENT.getPlayerMetadata()['isLastStand'] and not MRP_CLIENT.getPlayerMetadata()['isCuffed'] and not IsPauseMenuActive() then
-                local ped = PlayerPedId()
-                local curVeh = nil
-                if IsPedInAnyVehicle(ped) then
-                    local vehicle = GetVehiclePedIsIn(ped, false)
-                    CurrentGlovebox = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
-                    curVeh = vehicle
-                    CurrentVehicle = nil
-                else
-                    local vehicle = exports["mrp_core"].GetClosestVehicle()
-                    if vehicle ~= 0 and vehicle ~= nil then
-                        local pos = GetEntityCoords(ped)
-                        local trunkpos = GetOffsetFromEntityInWorldCoords(vehicle, 0, -2.5, 0)
-                        if (IsBackEngine(GetEntityModel(vehicle))) then
-                            trunkpos = GetOffsetFromEntityInWorldCoords(vehicle, 0, 2.5, 0)
-                        end
-                        if #(pos - trunkpos) < 2.0 and not IsPedInAnyVehicle(ped) then
-                            if GetVehicleDoorLockStatus(vehicle) < 2 then
-                                CurrentVehicle = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
-                                curVeh = vehicle
-                                CurrentGlovebox = nil
-                            else
-                                TriggerEvent('chat:addMessage', {
-                                    template = '<div class="chat-message nonemergency">{0}</div>',
-                                    args = {"Vehicle is locked"}
-                                })
-                                goto continue
-                            end
+RegisterCommand('inventory', function()
+    if not isCrafting then
+        if not MRP_CLIENT.getPlayerMetadata()['isDead'] and not MRP_CLIENT.getPlayerMetadata()['isLastStand'] and not MRP_CLIENT.getPlayerMetadata()['isCuffed'] and not IsPauseMenuActive() then
+            local ped = PlayerPedId()
+            local curVeh = nil
+            if IsPedInAnyVehicle(ped) then
+                local vehicle = GetVehiclePedIsIn(ped, false)
+                CurrentGlovebox = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
+                curVeh = vehicle
+                CurrentVehicle = nil
+            else
+                local vehicle = exports["mrp_core"].GetClosestVehicle()
+                if vehicle ~= 0 and vehicle ~= nil then
+                    local pos = GetEntityCoords(ped)
+                    local trunkpos = GetOffsetFromEntityInWorldCoords(vehicle, 0, -2.5, 0)
+                    if (IsBackEngine(GetEntityModel(vehicle))) then
+                        trunkpos = GetOffsetFromEntityInWorldCoords(vehicle, 0, 2.5, 0)
+                    end
+                    if #(pos - trunkpos) < 2.0 and not IsPedInAnyVehicle(ped) then
+                        if GetVehicleDoorLockStatus(vehicle) < 2 then
+                            CurrentVehicle = MRPShared.Trim(GetVehicleNumberPlateText(vehicle))
+                            curVeh = vehicle
+                            CurrentGlovebox = nil
                         else
-                            CurrentVehicle = nil
+                            TriggerEvent('chat:addMessage', {
+                                template = '<div class="chat-message nonemergency">{0}</div>',
+                                args = {"Vehicle is locked"}
+                            })
+                            goto continue
                         end
                     else
                         CurrentVehicle = nil
                     end
-                end
-    
-                if CurrentVehicle ~= nil then
-                    local maxweight = 0
-                    local slots = 0
-                    if GetVehicleClass(curVeh) == 0 then
-                        maxweight = 38000
-                        slots = 30
-                    elseif GetVehicleClass(curVeh) == 1 then
-                        maxweight = 50000
-                        slots = 40
-                    elseif GetVehicleClass(curVeh) == 2 then
-                        maxweight = 75000
-                        slots = 50
-                    elseif GetVehicleClass(curVeh) == 3 then
-                        maxweight = 42000
-                        slots = 35
-                    elseif GetVehicleClass(curVeh) == 4 then
-                        maxweight = 38000
-                        slots = 30
-                    elseif GetVehicleClass(curVeh) == 5 then
-                        maxweight = 30000
-                        slots = 25
-                    elseif GetVehicleClass(curVeh) == 6 then
-                        maxweight = 30000
-                        slots = 25
-                    elseif GetVehicleClass(curVeh) == 7 then
-                        maxweight = 30000
-                        slots = 25
-                    elseif GetVehicleClass(curVeh) == 8 then
-                        maxweight = 15000
-                        slots = 15
-                    elseif GetVehicleClass(curVeh) == 9 then
-                        maxweight = 60000
-                        slots = 35
-                    elseif GetVehicleClass(curVeh) == 12 then
-                        maxweight = 120000
-                        slots = 35
-                    else
-                        maxweight = 60000
-                        slots = 35
-                    end
-                    local other = {
-                        maxweight = maxweight,
-                        slots = slots,
-                    }
-                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
-                    OpenTrunk()
-                elseif CurrentGlovebox ~= nil then
-                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
-                elseif CurrentContainer ~= nil then
-                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "container", CurrentContainer)
-                elseif CurrentDrop ~= 0 then
-                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "drop", CurrentDrop)
                 else
-                    TriggerServerEvent("mrp:inventory:server:OpenInventory")
+                    CurrentVehicle = nil
                 end
+            end
+
+            if CurrentVehicle ~= nil then
+                local maxweight = 0
+                local slots = 0
+                if GetVehicleClass(curVeh) == 0 then
+                    maxweight = 38000
+                    slots = 30
+                elseif GetVehicleClass(curVeh) == 1 then
+                    maxweight = 50000
+                    slots = 40
+                elseif GetVehicleClass(curVeh) == 2 then
+                    maxweight = 75000
+                    slots = 50
+                elseif GetVehicleClass(curVeh) == 3 then
+                    maxweight = 42000
+                    slots = 35
+                elseif GetVehicleClass(curVeh) == 4 then
+                    maxweight = 38000
+                    slots = 30
+                elseif GetVehicleClass(curVeh) == 5 then
+                    maxweight = 30000
+                    slots = 25
+                elseif GetVehicleClass(curVeh) == 6 then
+                    maxweight = 30000
+                    slots = 25
+                elseif GetVehicleClass(curVeh) == 7 then
+                    maxweight = 30000
+                    slots = 25
+                elseif GetVehicleClass(curVeh) == 8 then
+                    maxweight = 15000
+                    slots = 15
+                elseif GetVehicleClass(curVeh) == 9 then
+                    maxweight = 60000
+                    slots = 35
+                elseif GetVehicleClass(curVeh) == 12 then
+                    maxweight = 120000
+                    slots = 35
+                else
+                    maxweight = 60000
+                    slots = 35
+                end
+                local other = {
+                    maxweight = maxweight,
+                    slots = slots,
+                }
+                TriggerServerEvent("mrp:inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
+                OpenTrunk()
+            elseif CurrentGlovebox ~= nil then
+                TriggerServerEvent("mrp:inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
+            elseif CurrentContainer ~= nil then
+                TriggerServerEvent("mrp:inventory:server:OpenInventory", "container", CurrentContainer)
+            elseif CurrentDrop ~= 0 then
+                TriggerServerEvent("mrp:inventory:server:OpenInventory", "drop", CurrentDrop)
+            else
+                TriggerServerEvent("mrp:inventory:server:OpenInventory")
             end
         end
         
@@ -245,6 +254,7 @@ Citizen.CreateThread(function()
     end
 end)
 
+RegisterKeyMapping('inventory', 'Open Inventory', 'keyboard', 'g')
 
 RegisterCommand('hotbar', function()
     isHotbar = not isHotbar
@@ -299,7 +309,7 @@ Citizen.CreateThread(function()
         if DropsNear ~= nil then
             for k, v in pairs(DropsNear) do
                 if DropsNear[k] ~= nil then
-                    DrawMarker(2, v.coords.x, v.coords.y, v.coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.15, 255, 255, 255, 255, false, false, false, 0, false, false, false)
+                    DrawMarker(2, v.coords.x, v.coords.y, v.coords.z - 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.1, 255, 255, 255, 155, false, false, false, false, false, false, false)
                 end
             end
         end
@@ -355,9 +365,10 @@ RegisterNetEvent("mrp:inventory:client:OpenInventory")
 AddEventHandler("mrp:inventory:client:OpenInventory", function(PlayerAmmo, inventory, other)
     if not IsEntityDead(PlayerPedId()) then
         MRP_CLIENT.setPlayerMetadata("inMenu", true)
+        TriggerEvent('randPickupAnim')
+        Wait(300) -- Lets inv fully fade out before opening again
         ToggleHotbar(false)
         SetNuiFocus(true, true)
-        --TriggerScreenblurFadeIn(1500)
         if other ~= nil then
             currentOtherInventory = other.name
         end
@@ -371,9 +382,30 @@ AddEventHandler("mrp:inventory:client:OpenInventory", function(PlayerAmmo, inven
             maxammo = Config.MaximumAmmoValues,
         })
         inInventory = true
-        TriggerEvent('randPickupAnim')
     end
 end)
+
+function GetClosestPlayer()
+    local ped = PlayerPedId()
+    local playerCoords = GetEntityCoords(ped)
+    local closestDistance = -1
+    local closestPlayer = -1
+    for key, value in pairs(exports.mrp_core:EnumeratePeds()) do
+        local playerHandle = NetworkGetPlayerIndexFromPed(value)
+        if NetworkIsPlayerActive(playerHandle) then
+            local targetCoords = GetEntityCoords(value)
+            
+            local dist = Vdist(playerCoords.x, playerCoords.y, playerCoords.z, targetCoords.x, targetCoords.y, targetCoords.z)
+            if closestDistance == -1 or dist < closestDistance then
+                closestPlayer = value
+                closestDistance = dist
+            end
+        end
+	end
+
+	return closestPlayer, closestDistance
+end
+
 RegisterNUICallback("GiveItem", function(data, cb)
     local player, distance = GetClosestPlayer()
     if player ~= -1 and distance < 2.5 then
@@ -399,27 +431,6 @@ RegisterNUICallback("GiveItem", function(data, cb)
         })
     end
 end)
-
-function GetClosestPlayer()
-    local ped = PlayerPedId()
-    local playerCoords = GetEntityCoords(ped)
-    local closestDistance = -1
-    local closestPlayer = -1
-    for key, value in pairs(exports.mrp_core:EnumeratePeds()) do
-        local playerHandle = NetworkGetPlayerIndexFromPed(value)
-        if NetworkIsPlayerActive(playerHandle) then
-            local targetCoords = GetEntityCoords(value)
-            
-            local dist = Vdist(playerCoords.x, playerCoords.y, playerCoords.z, targetCoords.x, targetCoords.y, targetCoords.z)
-            if closestDistance == -1 or dist < closestDistance then
-                closestPlayer = value
-                closestDistance = dist
-            end
-        end
-	end
-
-	return closestPlayer, closestDistance
-end
 
 RegisterNetEvent("mrp:inventory:client:ShowTrunkPos")
 AddEventHandler("mrp:inventory:client:ShowTrunkPos", function()
@@ -593,6 +604,7 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
         local ammo = GetAmmoInPedWeapon(ped, GetHashKey(weaponName));
         currentWeapon.info.ammo = ammo
         TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
+        RemoveAllPedWeapons(ped, true)
         currentWeapon = nil
     elseif weaponName == "weapon_stickybomb" then
         GiveWeaponToPed(ped, GetHashKey(weaponName), ammo, false, false)
@@ -765,7 +777,7 @@ AddEventHandler("mrp:inventory:client:CheckWeapon", function(weaponName)
     if currentWeapon ~= nil and currentWeapon.name == weaponName then 
         TriggerEvent('weapons:ResetHolster')
         SetCurrentPedWeapon(ped, GetHashKey("WEAPON_UNARMED"), true)
-        RemoveAllPedWeapons(ped, true)
+        --RemoveAllPedWeapons(ped, true)
         currentWeapon = nil
     end
 end)
@@ -829,6 +841,7 @@ RegisterNUICallback("CloseInventory", function(data, cb)
         CurrentContainer = nil
         SetNuiFocus(false, false)
         inInventory = false
+        ClearPedTasks(PlayerPedId())
         return
     end
     if CurrentVehicle ~= nil then
@@ -851,6 +864,7 @@ RegisterNUICallback("CloseInventory", function(data, cb)
     SetNuiFocus(false, false)
     inInventory = false
 end)
+
 RegisterNUICallback("UseItem", function(data, cb)
     TriggerServerEvent("mrp:inventory:server:UseItem", data.inventory, data.item)
 end)
