@@ -237,6 +237,7 @@ AddEventHandler('mrp:inventory:server:AddItem', function(itemName, amount, slot,
 	if itemName ~= nil then
 		AddItem(Player, itemName, amount, slot, info)
 		TriggerClientEvent("mrp:inventory:client:UpdatePlayerInventory", src, false)
+        TriggerClientEvent('mrp:inventory:client:ItemBox', src, itemName, MRPShared.Items(itemName), "add")
 	end
 end)
 
@@ -567,12 +568,12 @@ AddEventHandler('mrp:inventory:server:GiveItem', function(name, inventory, item,
                 template = '<div class="chat-message nonemergency">{0}</div>',
                 args = {"You gave " ..amount.. ' '..item.label..' to '..Target}
             })
-			TriggerClientEvent('mrp:inventory:client:ItemBox',src, MRPShared.Items(item.name), "remove")
+			TriggerClientEvent('mrp:inventory:client:ItemBox', src, MRPShared.Items(item.name), "remove")
             TriggerClientEvent('chat:addMessage', name, {
                 template = '<div class="chat-message nonemergency">{0}</div>',
                 args = {"You got " ..amount.. ' ' ..item.label..' from '..YourName}
             })
-			TriggerClientEvent('mrp:inventory:client:ItemBox',name, MRPShared.Items(item.name), "add")
+			TriggerClientEvent('mrp:inventory:client:ItemBox', src, name, MRPShared.Items(item.name), "add")
 		else
             TriggerClientEvent('chat:addMessage', src, {
                 template = '<div class="chat-message nonemergency">{0}</div>',
