@@ -374,10 +374,7 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							Stashes[id].isOpen = src
 							Stashes[id].label = secondInv.label
 						else
-							Stashes[id] = {}
-							Stashes[id].items = {}
-							Stashes[id].isOpen = src
-							Stashes[id].label = secondInv.label
+							Stashes[id].isOpen = false
 						end
 					end
 				elseif name == "trunk" then
@@ -436,9 +433,16 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							end
 						end
 					end
-					secondInv.name = "glovebox-"..id
-					secondInv.label = "Glovebox-"..id
-					secondInv.maxweight = 10000
+				end
+				secondInv.name = "trunk-"..id
+				secondInv.label = "Trunk-"..id
+				secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
+				secondInv.inventory = {}
+				secondInv.slots = other.slots ~= nil and other.slots or 50
+				if (Trunks[id] ~= nil and Trunks[id].isOpen) or (QBCore.Shared.SplitStr(id, "PLZI")[2] ~= nil and Player.PlayerData.job.name ~= "police") then
+					secondInv.name = "none-inv"
+					secondInv.label = "Trunk-None"
+					secondInv.maxweight = other.maxweight ~= nil and other.maxweight or 60000
 					secondInv.inventory = {}
 					secondInv.slots = 5
 					if Gloveboxes[id] ~= nil and Gloveboxes[id].isOpen then
@@ -455,15 +459,19 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 							Gloveboxes[id].label = secondInv.label
 						elseif IsVehicleOwned(src, id) and next(ownedItems) ~= nil then
 							secondInv.inventory = ownedItems
-							Gloveboxes[id] = {}
-							Gloveboxes[id].items = ownedItems
-							Gloveboxes[id].isOpen = src
-							Gloveboxes[id].label = secondInv.label
+							Trunks[id] = {}
+							Trunks[id].items = ownedItems
+							Trunks[id].isOpen = src
+							Trunks[id].label = secondInv.label
+						elseif Trunks[id] ~= nil and not Trunks[id].isOpen then
+							secondInv.inventory = Trunks[id].items
+							Trunks[id].isOpen = src
+							Trunks[id].label = secondInv.label
 						else
-							Gloveboxes[id] = {}
-							Gloveboxes[id].items = {}
-							Gloveboxes[id].isOpen = src
-							Gloveboxes[id].label = secondInv.label
+							Trunks[id] = {}
+							Trunks[id].items = {}
+							Trunks[id].isOpen = src
+							Trunks[id].label = secondInv.label
 						end
 					end
 				elseif name == "shop" then
@@ -533,12 +541,10 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 						Drops[id].isOpen = src
 						Drops[id].label = secondInv.label
 					else
-						secondInv.name = "none-inv"
-						secondInv.label = "ERROR"
-						secondInv.maxweight = 0
-						secondInv.inventory = {}
-						secondInv.slots = 0
-						--Drops[id].label = secondInv.label
+						Gloveboxes[id] = {}
+						Gloveboxes[id].items = {}
+						Gloveboxes[id].isOpen = src
+						Gloveboxes[id].label = secondInv.label
 					end
 				end
 				TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
@@ -549,6 +555,34 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
     --[[else
     	TriggerClientEvent('QBCore:Notify', src, 'Not Accessible', 'error')
     end ]]--	
+end)
+
+RegisterServerEvent("mrp:inventory:server:GiveItem")
+AddEventHandler('mrp:inventory:server:GiveItem', function(name, inventory, item, amount)
+	local src = source
+	local Player = MRP_SERVER.getSpawnedCharacter(src)
+	local OtherPlayer = MRP_SERVER.getSpawnedCharacter(tonumber(name))
+	local Target = OtherPlayer.name..' '..OtherPlayer.surname
+	local YourName = Player.name..' '..Player.surname
+	if amount ~= 0 then
+		if RemoveItem(Player, item.name, amount,item.slot, item.info) and AddItem(OtherPlayer, item.name, amount,item.slot, item.info) then
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"You gave " ..amount.. ' '..item.label..' to '..Target}
+            })
+			TriggerClientEvent('mrp:inventory:client:ItemBox',src, MRPShared.Items(item.name), "remove")
+            TriggerClientEvent('chat:addMessage', name, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"You got " ..amount.. ' ' ..item.label..' from '..YourName}
+            })
+			TriggerClientEvent('mrp:inventory:client:ItemBox',name, MRPShared.Items(item.name), "add")
+		else
+            TriggerClientEvent('chat:addMessage', src, {
+                template = '<div class="chat-message nonemergency">{0}</div>',
+                args = {"Cant give item!"}
+            })
+		end
+	end
 end)
 
 RegisterServerEvent("mrp:inventory:server:SaveInventory")
@@ -939,7 +973,7 @@ AddEventHandler('mrp:inventory:server:SetInventoryData', function(fromInventory,
     						AddToTrunk(plate, fromSlot, toSlot, itemInfo["name"], toAmount, toItemData.info)
     						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Swapped Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) swapped item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** with item; name: **"..itemInfo["name"].."**, amount: **" .. toAmount .. "** plate: *" .. plate .. "*")
     					--else
-    						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Stacked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
+    						--TriggerEvent("qb-log:server:CreateLog", "trunk", "Stafcked Item", "orange", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) stacked item; name: **"..toItemData.name.."**, amount: **" .. toAmount .. "** from plate: *" .. plate .. "*")
     					end
     				--else
     					--TriggerEvent("qb-log:server:CreateLog", "trunk", "Received Item", "green", "**".. GetPlayerName(src) .. "** (citizenid: *"..Player.PlayerData.citizenid.."* | id: *"..src.."*) reveived item; name: **"..fromItemData.name.."**, amount: **" .. fromAmount.. "** plate: *" .. plate .. "*")
@@ -2077,42 +2111,3 @@ RegisterCommand("randomitems", function(source, args, rawCommand)
         Citizen.Wait(500)
 	end
 end, false) --TODO unrestricted for now
-
--- TODO useables
---[[QBCore.Functions.CreateUseableItem("snowball", function(source, item)
-	local Player = QBCore.Functions.GetPlayer(source)
-	local itemData = Player.Functions.GetItemBySlot(item.slot)
-	if Player.Functions.GetItemBySlot(item.slot) ~= nil then
-        TriggerClientEvent("mrp:inventory:client:UseSnowball", source, itemData.amount)
-    end
-end)
-
-QBCore.Functions.CreateUseableItem("driver_license", function(source, item)
-	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local character = QBCore.Functions.GetPlayer(source)
-		local PlayerPed = GetPlayerPed(source)
-		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
-		if dist < 3.0 then
-			TriggerClientEvent('chat:addMessage', v,  {
-				template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>First Name:</strong> {1} <br><strong>Last Name:</strong> {2} <br><strong>Birth Date:</strong> {3} <br><strong>Licenses:</strong> {4}</div></div>',
-				args = {'Drivers License', character.PlayerData.charinfo.firstname, character.PlayerData.charinfo.lastname, character.PlayerData.charinfo.birthdate, character.PlayerData.charinfo.type}
-			})
-		end
-	end
-end)
-
-QBCore.Functions.CreateUseableItem("id_card", function(source, item)
-	for k, v in pairs(QBCore.Functions.GetPlayers()) do
-		local character = QBCore.Functions.GetPlayer(source)
-		local PlayerPed = GetPlayerPed(source)
-		local TargetPed = GetPlayerPed(v)
-		local dist = #(GetEntityCoords(PlayerPed) - GetEntityCoords(TargetPed))
-		if dist < 3.0 then
-			TriggerClientEvent('chat:addMessage', v,  {
-				template = '<div class="chat-message advert"><div class="chat-message-body"><strong>{0}:</strong><br><br> <strong>Civ ID:</strong> {1} <br><strong>First Name:</strong> {2} <br><strong>Last Name:</strong> {3} <br><strong>Birthdate:</strong> {4} <br><strong>Gender:</strong> {5} <br><strong>Nationality:</strong> {6}</div></div>',
-				args = {'ID Card', character.PlayerData.citizenid, character.PlayerData.charinfo.firstname, character.PlayerData.charinfo.lastname, character.PlayerData.charinfo.birthdate, character.PlayerData.charinfo.gender, character.PlayerData.charinfo.nationality}
-			})
-		end
-	end
-end)]]--

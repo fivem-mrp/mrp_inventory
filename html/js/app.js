@@ -1,21 +1,12 @@
 var InventoryOption = "120, 10, 20";
-
 var totalWeight = 0;
 var totalWeightOther = 0;
-
 var playerMaxWeight = 0;
 var otherMaxWeight = 0;
-
 var otherLabel = "";
-
 var ClickedItemData = {};
-
-var SelectedAttachment = null;
 var AttachmentScreenActive = false;
 var ControlPressed = false;
-var disableRightMouse = false;
-var selectedItem = null;
-
 var IsDragging = false;
 
 $(document).on('keydown', function() {
@@ -43,10 +34,10 @@ $(document).on('keyup', function() {
 $(document).on("mouseenter", ".item-slot", function(e) {
     e.preventDefault();
     if ($(this).data("item") != null) {
-        $(".ply-iteminfo-container").fadeIn(150);
+        $(".ply-iteminfo-container").fadeIn(500);
         FormatItemInfo($(this).data("item"));
     } else {
-        $(".ply-iteminfo-container").fadeOut(100);
+        $(".ply-iteminfo-container").fadeOut(500);
     }
 });
 
@@ -126,11 +117,9 @@ $(document).on("click", ".item-slot", function(e) {
         if (ItemData.name !== undefined) {
             if ((ItemData.name).split("_")[0] == "weapon") {
                 if (!$("#weapon-attachments").length) {
-                    // if (ItemData.info.attachments !== null && ItemData.info.attachments !== undefined && ItemData.info.attachments.length > 0) {
-                    $(".inv-options-list").append('<center><div style="background-color: #5285b6;" class="inv-option-item" id="weapon-attachments"><p>ATTACHMENTS</p></div></center>');
+                    $(".inv-options-list").append('<center><div style="background-color: #466887;" class="inv-option-item" id="weapon-attachments"><p>ATTACHMENTS</p></div></center>');
                     $("#weapon-attachments").hide().fadeIn(250);
                     ClickedItemData = ItemData;
-                    // }
                 } else if (ClickedItemData == ItemData) {
                     $("#weapon-attachments").fadeOut(250, function() {
                         $("#weapon-attachments").remove();
@@ -167,12 +156,8 @@ $(document).on("click", ".item-slot", function(e) {
 
 $(document).on('click', '.weapon-attachments-back', function(e) {
     e.preventDefault();
-    $("#qbus-inventory").css({
-        "display": "block"
-    });
-    $("#qbus-inventory").animate({
-        left: 0 + "vw"
-    }, 200);
+    $("#qbus-inventory").css({"display":"block"});
+    $("#qbus-inventory").animate({left: 0+"vw"}, 200);
     $(".weapon-attachments-container").animate({
         left: -100 + "vw"
     }, 200, function() {
@@ -284,15 +269,9 @@ function handleAttachmentDrag() {
 $(document).on('click', '#weapon-attachments', function(e) {
     e.preventDefault();
     if (!Inventory.IsWeaponBlocked(ClickedItemData.name)) {
-        $(".weapon-attachments-container").css({
-            "display": "block"
-        })
-        $("#qbus-inventory").animate({
-            left: 100 + "vw"
-        }, 200, function() {
-            $("#qbus-inventory").css({
-                "display": "none"
-            })
+        $(".weapon-attachments-container").css({"display":"block"})
+        $("#qbus-inventory").animate({left: 100+"vw"}, 200, function(){
+            $("#qbus-inventory").css({"display":"none"})
         });
         $(".weapon-attachments-container").animate({
             left: 0 + "vw"
@@ -319,8 +298,11 @@ function FormatItemInfo(itemData) {
         } else if (itemData.name == "driver_license") {
             $(".item-info-title").html('<p>' + itemData.label + '</p>')
             $(".item-info-description").html('<p><strong>First Name: </strong><span>' + itemData.info.firstname + '</span></p><p><strong>Last Name: </strong><span>' + itemData.info.lastname + '</span></p><p><strong>Birth Date: </strong><span>' + itemData.info.birthdate + '</span></p><p><strong>Licenses: </strong><span>' + itemData.info.type + '</span></p>');
-        } else if (itemData.name == "lawyerpass") {
-            $(".item-info-title").html('<p>' + itemData.label + '</p>')
+        } else if (itemData.name == "weaponlicense") {
+            $(".item-info-title").html('<p>'+itemData.label+'</p>')
+            $(".item-info-description").html('<p><strong>First Name: </strong><span>' + itemData.info.firstname + '</span></p><p><strong>Last Name: </strong><span>' + itemData.info.lastname + '</span></p><p><strong>Birth Date: </strong><span>' + itemData.info.birthdate + '</span></p><p><strong>Licenses: </strong><span>' + itemData.info.type + '</span></p>');
+		} else if (itemData.name == "lawyerpass") {
+            $(".item-info-title").html('<p>'+itemData.label+'</p>')
             $(".item-info-description").html('<p><strong>Pass-ID: </strong><span>' + itemData.info.id + '</span></p><p><strong>First Name: </strong><span>' + itemData.info.firstname + '</span></p><p><strong>Last Name: </strong><span>' + itemData.info.lastname + '</span></p><p><strong>CID: </strong><span>' + itemData.info.citizenid + '</span></p>');
         } else if (itemData.name == "harness") {
             $(".item-info-title").html('<p>' + itemData.label + '</p>')
@@ -462,7 +444,7 @@ function handleDragDrop() {
             }, 300)
             $(this).css("background", "rgba(235, 235, 235, 0.03)");
             $(this).find("img").css("filter", "brightness(100%)");
-            $("#item-use").css("background", "transparent");
+            $("#item-use").css("background", "transparent");  /* I feel like this is important */
         },
     });
 
@@ -527,6 +509,13 @@ function handleDragDrop() {
             }
         }
     });
+
+    $(document).on('click', '#item-close', function(e){
+        e.preventDefault();
+        $.post("https://aj-inventory/CloseInventory", JSON.stringify({}));
+        Inventory.Close();
+    });
+
     $("#item-drop").droppable({
         hoverClass: 'item-slot-hoverClass',
         drop: function(event, ui) {
@@ -668,12 +657,12 @@ $(document).on('click', '.CombineItem', function(e) {
     Inventory.Close();
 });
 
-$(document).on('click', '.SwitchItem', function(e) {
+/*$(document).on('click', '.SwitchItem', function(e) {
     e.preventDefault();
     $(".combine-option-container").hide();
 
     optionSwitch(combineslotData.fromSlot, combineslotData.toSlot, combineslotData.fromInv, combineslotData.toInv, combineslotData.toAmount, combineslotData.toData, combineslotData.fromData)
-});
+});*/
 
 function optionSwitch($fromSlot, $toSlot, $fromInv, $toInv, $toAmount, toData, fromData) {
     fromData.slot = parseInt($toSlot);
@@ -1357,8 +1346,8 @@ var requiredItemOpen = false;
             requiredItemOpen = false;
         }
 
-        $("#qbus-inventory").fadeIn(1500);
-        if (data.other != null && data.other != "") {
+        $("#qbus-inventory").fadeIn(400);
+        if(data.other != null && data.other != "") {
             $(".other-inventory").attr("data-inventory", data.other.name);
         } else {
             $(".other-inventory").attr("data-inventory", 0);
@@ -1384,9 +1373,6 @@ var requiredItemOpen = false;
             for (i = 1; i < (Inventory.dropslots + 1); i++) {
                 $(".other-inventory").append('<div class="item-slot" data-slot="' + i + '"><div class="item-slot-img"></div><div class="item-slot-label"><p>&nbsp;</p></div></div>');
             }
-            $(".other-inventory .item-slot").css({
-                "background-color": "rgba(0, 0, 0, 0.123)"
-            });
         }
 
         if (data.inventory !== null) {
@@ -1438,8 +1424,9 @@ var requiredItemOpen = false;
                 }
             });
         }
-        var per = (totalWeight / 1000) / (data.maxweight / 100000)
-        $(".pro").css("width", per + "%");
+        
+        var per =(totalWeight/1000)/(data.maxweight/100000)
+        $(".pro").css("width",per+"%");
         $("#player-inv-weight").html("Weight: " + (totalWeight / 1000).toFixed(2) + " / " + (data.maxweight / 1000).toFixed(2) + " lbs");
         playerMaxWeight = data.maxweight;
         if (data.other != null) {
@@ -1493,7 +1480,7 @@ var requiredItemOpen = false;
         $(".ply-hotbar-inventory").css("display", "block");
         $(".ply-iteminfo-container").css("display", "none");
         $("#qbus-inventory").fadeOut(200);
-        $(".combine-option-container").hide();
+        $(".combine-option-container").fadeOut(200);
         $(".item-slot").remove();
         if ($("#rob-money").length) {
             $("#rob-money").remove();
@@ -1584,7 +1571,7 @@ var requiredItemOpen = false;
                     Inventory.QualityCheck(item, true, false);
                 }
             });
-            $(".z-hotbar-inventory").fadeIn(150);
+            $(".z-hotbar-inventory").fadeIn(750);
         } else {
             $(".z-hotbar-inventory").fadeOut(150, function() {
                 $(".z-hotbar-inventory").html("");
@@ -1595,8 +1582,8 @@ var requiredItemOpen = false;
     Inventory.UseItem = function(data) {
         $(".itembox-container").hide();
         $(".itembox-container").fadeIn(250);
-        $("#itembox-action").html("<p>Gebruikt</p>");
-        $("#itembox-label").html("<p>" + data.item.label + "</p>");
+        $("#itembox-action").html("<p>Used</p>");
+        $("#itembox-label").html("<p>"+data.item.label+"</p>");
         $("#itembox-image").html('<div class="item-slot-img"><img src="images/' + data.item.image + '" alt="' + data.item.name + '" /></div>')
         setTimeout(function() {
             $(".itembox-container").fadeOut(250);
@@ -1621,7 +1608,7 @@ var requiredItemOpen = false;
         $itembox.removeClass('template');
         $itembox.html('<div id="itembox-action"><p>' + type + '</p></div><div id="itembox-label"><p>' + data.item.label + '</p></div><div class="item-slot-img"><img src="images/' + data.item.image + '" alt="' + data.item.name + '" /></div>');
         $(".itemboxes-container").prepend($itembox);
-        $itembox.fadeIn(250);
+        $itembox.fadeIn(750);
         setTimeout(function() {
             $.when($itembox.fadeOut(300)).done(function() {
                 $itembox.remove()
@@ -1675,7 +1662,7 @@ var requiredItemOpen = false;
                     Inventory.ToggleHotbar(event.data);
                     break;
                 case "RobMoney":
-                    $(".inv-options-list").append('<div class="inv-option-item" id="rob-money"><p>Steal Cash</p></div>');
+                    $(".inv-options-list").append('<center><div style="background-color: #466887;" class="inv-option-item" id="rob-money"><p>Take Cash</p></div>');
                     $("#rob-money").data('TargetId', event.data.TargetId);
                     break;
             }
