@@ -686,6 +686,7 @@ AddEventHandler('mrp:inventory:server:UseItem', function(inventory, item)
                     name = itemData.name
                 }, function(res)
                     res.slot = item.slot
+                    res.info = item.info
                     TriggerClientEvent("mrp:client:useables:use", src, res, "mrp:server:item:used")
                 end)
     		end
