@@ -274,8 +274,11 @@ AddEventHandler('mrp:inventory:server:UpdateItem', function(item)
 end)
 
 RegisterServerEvent("mrp:inventory:server:RemoveItem")
-AddEventHandler('mrp:inventory:server:RemoveItem', function(itemName, amount, slot, info)
+AddEventHandler('mrp:inventory:server:RemoveItem', function(itemName, amount, slot, info, externalSrc)
 	local src = source
+    if externalSrc ~= nil then
+        src = externalSrc
+    end
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local amount = tonumber(amount)
 	if itemName ~= nil then
