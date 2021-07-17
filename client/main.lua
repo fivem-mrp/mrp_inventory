@@ -602,6 +602,9 @@ AddEventHandler("mrp:inventory:client:UseWeapon", function(weaponData, shootbool
         TriggerEvent('weapons:client:SetCurrentWeapon', nil, shootbool)
         --update ammo
         local ammo = GetAmmoInPedWeapon(ped, GetHashKey(weaponName));
+        if currentWeapon.info == nil or currentWeapon.info == "" then
+            currentWeapon.info = { ammo = 0}
+        end
         currentWeapon.info.ammo = ammo
         TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
         RemoveAllPedWeapons(ped, true)
@@ -1017,6 +1020,9 @@ Citizen.CreateThread(function()
                 --print('was armed')
                 if currentWeapon ~= nil then
                     local ammo = GetAmmoInPedWeapon(ped, GetHashKey(currentWeapon.name));
+                    if currentWeapon.info == nil or currentWeapon.info == "" then
+                        currentWeapon.info = { ammo = 0}
+                    end
                     currentWeapon.info.ammo = ammo
                     TriggerServerEvent('mrp:inventory:server:UpdateItem', currentWeapon)
                     currentWeapon = nil
