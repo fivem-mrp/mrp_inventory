@@ -315,6 +315,7 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
     if pid ~= nil then
         src = pid
     end
+    
 	--local ply = Player(src)
 	local Player = MRP_SERVER.getSpawnedCharacter(src)
 	local PlayerAmmo = {}
@@ -334,9 +335,10 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
 			if ammo[1] ~= nil then
 				PlayerAmmo = ammo[1]
 			end
+            
+            local secondInv = {}
 
 			if name ~= nil and id ~= nil then
-				local secondInv = {}
 				if name == "stash" then
 					if Stashes[id] ~= nil then
 						if Stashes[id].isOpen then
@@ -524,41 +526,24 @@ AddEventHandler('mrp:inventory:server:OpenInventory', function(name, id, other, 
                         Containers[id.id].label = secondInv.label
                     end
                 else
-					if Drops[id] ~= nil and not Drops[id].isOpen then
-						secondInv.name = id
-						secondInv.label = "Ground-"..tostring(id)
-						secondInv.maxweight = 500000
-						secondInv.inventory = Drops[id].items
-						secondInv.slots = 30
-						Drops[id].isOpen = src
-						Drops[id].label = secondInv.label
-					else
-						secondInv.name = "none-inv"
-						secondInv.label = "ERROR"
-						secondInv.maxweight = 0
-						secondInv.inventory = {}
-						secondInv.slots = 0
-						--Drops[id].label = secondInv.label
-					end
+                    if Drops[id] ~= nil and not Drops[id].isOpen then
+    					secondInv.name = id
+    					secondInv.label = "Dropped-"..tostring(id)
+    					secondInv.maxweight = 100000
+    					secondInv.inventory = Drops[id].items
+    					secondInv.slots = 30
+    					Drops[id].isOpen = src
+    					Drops[id].label = secondInv.label
+    				end
 				end
 				TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
-			else
-				if Drops[id] ~= nil and not Drops[id].isOpen then
-					secondInv.name = id
-					secondInv.label = "Dropped-"..tostring(id)
-					secondInv.maxweight = 100000
-					secondInv.inventory = Drops[id].items
-					secondInv.slots = 30
-					Drops[id].isOpen = src
-					Drops[id].label = secondInv.label
-				else
-					secondInv.name = "none-inv"
-					secondInv.label = "Dropped-None"
-					secondInv.maxweight = 100000
-					secondInv.inventory = {}
-					secondInv.slots = 0
-					--Drops[id].label = secondInv.label
-				end
+            else
+                secondInv.name = "none-inv"
+                secondInv.label = "Dropped-None"
+                secondInv.maxweight = 100000
+                secondInv.inventory = {}
+                secondInv.slots = 30
+                --Drops[id].label = secondInv.label
                 TriggerClientEvent("mrp:inventory:client:OpenInventory", src, PlayerAmmo, inventory.items, secondInv)
 			end
 		end)
@@ -1744,10 +1729,15 @@ function GetOwnedVehicleGloveboxItems(plate)
         if result[1] ~= nil then
             for k, item in pairs(result) do
 				local itemInfo = MRPShared.Items(item.name:lower())
+                print(json.encode(item.info))
+                local info = item.info
+                if item.info ~= nil and type(item.info) == 'string' then
+                    info = json.decode(item.info)
+                end
 				items[item.slot] = {
 					name = itemInfo["name"],
 					amount = tonumber(item.amount),
-					info = json.decode(item.info) ~= nil and json.decode(item.info) or "",
+					info = info,
 					label = itemInfo["label"],
 					description = itemInfo["description"] ~= nil and itemInfo["description"] or "",
 					weight = itemInfo["weight"], 
