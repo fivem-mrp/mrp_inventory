@@ -3,6 +3,7 @@ MRP_CLIENT = nil;
 inInventory = false
 hotbarOpen = false
 
+local inventoryTest = {}
 local currentWeapon = nil
 local CurrentWeaponData = {}
 local currentOtherInventory = nil
@@ -154,6 +155,10 @@ Citizen.CreateThread(function()
         end
     end
 end)
+
+RegisterCommand('closeinv', function()
+    closeInventory()
+end, false)
 
 RegisterCommand('inventory', function()
     if not isCrafting then
@@ -368,6 +373,7 @@ AddEventHandler("mrp:inventory:client:OpenInventory", function(PlayerAmmo, inven
         TriggerEvent('randPickupAnim')
         Wait(300) -- Lets inv fully fade out before opening again
         ToggleHotbar(false)
+        TriggerEvent('randPickupAnim')
         SetNuiFocus(true, true)
         if other ~= nil then
             currentOtherInventory = other.name
@@ -867,7 +873,6 @@ RegisterNUICallback("CloseInventory", function(data, cb)
     SetNuiFocus(false, false)
     inInventory = false
 end)
-
 RegisterNUICallback("UseItem", function(data, cb)
     TriggerServerEvent("mrp:inventory:server:UseItem", data.inventory, data.item)
 end)
@@ -921,13 +926,12 @@ RegisterNUICallback("PlayDropFail", function(data, cb)
 end)
 
 function OpenTrunk()
-    Wait(500)
     local vehicle = exports["mrp_core"].GetClosestVehicle()
     while (not HasAnimDictLoaded("amb@prop_human_bum_bin@idle_b")) do
         RequestAnimDict("amb@prop_human_bum_bin@idle_b")
         Citizen.Wait(100)
     end
-    --TaskPlayAnim(PlayerPedId(), "amb@prop_human_bum_bin@idle_b", "idle_d", 4.0, 4.0, -1, 50, 0, false, false, false)
+    TaskPlayAnim(PlayerPedId(), "amb@prop_human_bum_bin@idle_b", "idle_d", 4.0, 4.0, -1, 50, 0, false, false, false)
     if (IsBackEngine(GetEntityModel(vehicle))) then
         SetVehicleDoorOpen(vehicle, 4, false, false)
     else
@@ -968,6 +972,12 @@ local function getItemBySlot(items, slot)
     end
     
     return item
+end
+
+function closeInventory()
+    SendNUIMessage({
+        action = "close",
+    })
 end
 
 function ToggleHotbar(toggle)
