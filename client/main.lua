@@ -140,14 +140,21 @@ Citizen.CreateThread(function()
                 local ped = PlayerPedId()
                 local pos = GetEntityCoords(ped)
                 if not IsPedInAnyVehicle(ped) then
+                    local foundAtLeastOneContainer = false
                     for k, container in pairs(containers) do
                         local hash = GetEntityModel(container)
                         local contpos = GetEntityCoords(container)
-                        if Config.worldContainers[hash] ~= nil and #(pos - contpos) < 5.0 then
+                        if Config.worldContainers[hash] ~= nil and #(pos - contpos) < 2.0 then
                             CurrentContainer = Config.worldContainers[hash]
                             CurrentContainer['id'] = CurrentContainer.name .. #contpos
+                            foundAtLeastOneContainer = true
                         end
                     end
+                    if not foundAtLeastOneContainer then
+                        CurrentContainer = nil
+                    end
+                else
+                    CurrentContainer = nil
                 end
             end
         else
