@@ -2037,7 +2037,7 @@ RegisterCommand('resetinv', function(source, args, rawCommand)
             args = {"Args not filled out correctly.."}
         })
 	end
-end, false) --TODO unrestricted for now
+end, true)
 
 RegisterCommand('trunkpos', function(source, args, rawCommand)
 	TriggerClientEvent("mrp:inventory:client:ShowTrunkPos", source)
@@ -2098,7 +2098,7 @@ RegisterCommand("giveitem", function(source, args, rawCommand)
             args = {"Invalid Player ID"}
         })
 	end
-end, false) --TODO unrestricted for now
+end, true)
 
 RegisterCommand("randomitems", function(source, args, rawCommand)
 	local Player = MRP_SERVER.getSpawnedCharacter(source)
@@ -2118,4 +2118,4 @@ RegisterCommand("randomitems", function(source, args, rawCommand)
 		TriggerClientEvent('mrp:inventory:client:ItemBox', source, MRPShared.Items(randitem["name"]), 'add')
         Citizen.Wait(500)
 	end
-end, false) --TODO unrestricted for now
+end, true)
