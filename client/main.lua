@@ -146,8 +146,7 @@ Citizen.CreateThread(function()
                         local contpos = GetEntityCoords(container)
                         if Config.worldContainers[hash] ~= nil and #(pos - contpos) < 2.0 then
                             CurrentContainer = Config.worldContainers[hash]
-                            --CurrentContainer['id'] = CurrentContainer.name .. container
-                            --TODO this sometimes scuffs TEST
+                            SetEntityAsMissionEntity(container, true, true)
                             local netId = ObjToNet(container)
                             if not NetworkGetEntityIsNetworked(container) then
                                 NetworkRegisterEntityAsNetworked(container)
