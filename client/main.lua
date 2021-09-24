@@ -146,7 +146,19 @@ Citizen.CreateThread(function()
                         local contpos = GetEntityCoords(container)
                         if Config.worldContainers[hash] ~= nil and #(pos - contpos) < 2.0 then
                             CurrentContainer = Config.worldContainers[hash]
-                            CurrentContainer['id'] = CurrentContainer.name .. #contpos
+                            --CurrentContainer['id'] = CurrentContainer.name .. container
+                            --TODO this sometimes scuffs TEST
+                            local netId = ObjToNet(container)
+                            if not NetworkGetEntityIsNetworked(container) then
+                                NetworkRegisterEntityAsNetworked(container)
+                                netId = ObjToNet(container)
+                                SetNetworkIdCanMigrate(netId, false)
+                                NetworkUseHighPrecisionBlending(netId, false)
+                                SetNetworkIdExistsOnAllMachines(netId, true)
+                            end
+                            
+                            CurrentContainer['id'] = CurrentContainer.name .. netId
+                            
                             foundAtLeastOneContainer = true
                         end
                     end
@@ -208,37 +220,38 @@ RegisterCommand('inventory', function()
             if CurrentVehicle ~= nil then
                 local maxweight = 0
                 local slots = 0
-                if GetVehicleClass(curVeh) == 0 then
+                local vehClass = GetVehicleClass(curVeh)
+                if vehClass == 0 then
                     maxweight = 38000
                     slots = 30
-                elseif GetVehicleClass(curVeh) == 1 then
+                elseif vehClass == 1 then
                     maxweight = 50000
                     slots = 40
-                elseif GetVehicleClass(curVeh) == 2 then
+                elseif vehClass == 2 then
                     maxweight = 75000
                     slots = 50
-                elseif GetVehicleClass(curVeh) == 3 then
+                elseif vehClass == 3 then
                     maxweight = 42000
                     slots = 35
-                elseif GetVehicleClass(curVeh) == 4 then
+                elseif vehClass == 4 then
                     maxweight = 38000
                     slots = 30
-                elseif GetVehicleClass(curVeh) == 5 then
+                elseif vehClass == 5 then
                     maxweight = 30000
                     slots = 25
-                elseif GetVehicleClass(curVeh) == 6 then
+                elseif vehClass == 6 then
                     maxweight = 30000
                     slots = 25
-                elseif GetVehicleClass(curVeh) == 7 then
+                elseif vehClass == 7 then
                     maxweight = 30000
                     slots = 25
-                elseif GetVehicleClass(curVeh) == 8 then
+                elseif vehClass == 8 then
                     maxweight = 15000
                     slots = 15
-                elseif GetVehicleClass(curVeh) == 9 then
+                elseif vehClass == 9 then
                     maxweight = 60000
                     slots = 35
-                elseif GetVehicleClass(curVeh) == 12 then
+                elseif vehClass == 12 then
                     maxweight = 120000
                     slots = 35
                 else
@@ -249,8 +262,20 @@ RegisterCommand('inventory', function()
                     maxweight = maxweight,
                     slots = slots,
                 }
-                TriggerServerEvent("mrp:inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
-                OpenTrunk()
+                
+                if vehClass == 13 then
+                    --bicycles don't have trunk
+                    if CurrentContainer ~= nil then
+                        TriggerServerEvent("mrp:inventory:server:OpenInventory", "container", CurrentContainer)
+                    elseif CurrentDrop ~= 0 then
+                        TriggerServerEvent("mrp:inventory:server:OpenInventory", "drop", CurrentDrop)
+                    else
+                        TriggerServerEvent("mrp:inventory:server:OpenInventory")
+                    end
+                else
+                    TriggerServerEvent("mrp:inventory:server:OpenInventory", "trunk", CurrentVehicle, other)
+                    OpenTrunk()
+                end
             elseif CurrentGlovebox ~= nil then
                 TriggerServerEvent("mrp:inventory:server:OpenInventory", "glovebox", CurrentGlovebox)
             elseif CurrentContainer ~= nil then
@@ -861,8 +886,27 @@ RegisterNUICallback("CloseInventory", function(data, cb)
         return
     end
     if CurrentVehicle ~= nil then
-        CloseTrunk()
-        TriggerServerEvent("mrp:inventory:server:SaveInventory", "trunk", CurrentVehicle)
+        local vehicle = exports["mrp_core"].GetClosestVehicle()
+        local vehClass = GetVehicleClass(vehicle)
+        if vehClass == 13 then
+            --bicycles don't have trunk
+            if CurrentGlovebox ~= nil then
+                TriggerServerEvent("mrp:inventory:server:SaveInventory", "glovebox", CurrentGlovebox)
+                CurrentGlovebox = nil
+            elseif CurrentStash ~= nil then
+                TriggerServerEvent("mrp:inventory:server:SaveInventory", "stash", CurrentStash)
+                CurrentStash = nil
+            elseif CurrentContainer ~= nil then
+                TriggerServerEvent("mrp:inventory:server:SaveInventory", "container", CurrentContainer)
+                CurrentContainer = nil
+            else
+                TriggerServerEvent("mrp:inventory:server:SaveInventory", "drop", CurrentDrop)
+                CurrentDrop = 0
+            end
+        else
+            CloseTrunk()
+            TriggerServerEvent("mrp:inventory:server:SaveInventory", "trunk", CurrentVehicle)
+        end
         CurrentVehicle = nil
     elseif CurrentGlovebox ~= nil then
         TriggerServerEvent("mrp:inventory:server:SaveInventory", "glovebox", CurrentGlovebox)
