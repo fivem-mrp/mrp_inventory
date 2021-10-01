@@ -136,6 +136,8 @@ end
 
 local function RemoveItem(ply, name, quantity, fromSlot)
     local p = promise.new()
+    print(quantity)
+    print(fromSlot)
     
     MRP_SERVER.read('inventory', {
         owner = ply._id
@@ -150,7 +152,7 @@ local function RemoveItem(ply, name, quantity, fromSlot)
         else
             if inventory.items ~= nil then
                 for k, v in pairs(inventory.items) do
-                    if v.name == name and (fromSlot ~= nil and v.slot == fromSlot) then
+                    if v.name == name and ((fromSlot ~= nil and v.slot == fromSlot) or (fromSlot == nil)) then
                         v.amount = v.amount - quantity
                         if v.amount <= 0 then
                             needsPull = true
