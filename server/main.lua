@@ -136,8 +136,6 @@ end
 
 local function RemoveItem(ply, name, quantity, fromSlot)
     local p = promise.new()
-    print(quantity)
-    print(fromSlot)
     
     MRP_SERVER.read('inventory', {
         owner = ply._id
